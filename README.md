@@ -1,0 +1,3 @@
+Dedalus-VPM code for periodic hill: main_channelflow_volumepenalty_symmetry_nek5000_1b_bulk_velocity2D.py
+Dedalus-VPM post processing code: dedalus_flow_output_data_channeflow_velocityNe5000_2D_jfm.m
+Mean velocity of Periodic hill functio: mean_velocity_dedalus_postprocess.m
