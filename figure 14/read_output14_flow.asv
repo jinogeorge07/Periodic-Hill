@@ -3,18 +3,14 @@ clc; clear all;close all;
 
 folderpath = './'
 
-u_2D_mean = readmatrix("u_mean_nek_Re100.csv");
-v_2D_mean = readmatrix("v_mean_nek_Re100.csv");
-x_2D = readmatrix("x_mean_nek_Re100.csv")
-y_2D = readmatrix("y_mean_nek_Re100.csv")
+
 
 rwb1 = bluewhitered;
-nlevels = 40;
 %% U nek 
 fig = figure;
 %set(fig, 'Position', [100, 100, 900, 750]);  % Resize figure
 set(fig, 'Position', [100, 100, 1000, 800]); 
-contourf(x_2D, y_2D, u_2D_mean, nlevels);
+contourf(x_2D, y_2D, u_2D, nlevels);
 shading interp
 colormap(rwb1);
 
@@ -53,14 +49,14 @@ newticks = unique([xmin; current(:); xmax]);
 
 ax.XTick = newticks;
 ax.XTickLabel = arrayfun(@(x) sprintf('%.1f', x), newticks, 'UniformOutput', false);
-saveas(gcf, 'U_nek_Re100.png');
+saveas(gcf, 'U_nek.png');
 
 
 %% V nek ------------------------------------------------------------------
 fig = figure;
 %set(fig, 'Position', [100, 100, 900, 750]);  % Resize figure
 set(fig, 'Position', [100, 100, 1000, 800]); 
-contourf(x_2D, y_2D, v_2D_mean, nlevels);
+contourf(x_2D, y_2D, v_2D, nlevels);
 shading interp
 colormap(rwb1);
 
@@ -98,4 +94,4 @@ newticks = unique([xmin; current(:); xmax]);
 
 ax.XTick = newticks;
 ax.XTickLabel = arrayfun(@(x) sprintf('%.1f', x), newticks, 'UniformOutput', false);
-saveas(gcf, 'V_nek_Re100.png');
+saveas(gcf, 'V_nek.png');
