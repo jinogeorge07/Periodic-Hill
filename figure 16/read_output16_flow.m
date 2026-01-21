@@ -154,7 +154,7 @@ ylim([0 0.7])
 ax = gca;
 % Increase tick font size
 ax.FontSize = 16;    % adjust as desired (16–22 is typical)
-legend('$\hat{u}$','$\hat{v}$','$\hat{w}$', ...
+legend('$\widehat{u}$','$\widehat{v}$','$\widehat{w}$', ...
        'Interpreter','latex','Location','northeast');
 grid on
 saveas(gcf, fullfile('UVW_grid_convergence_linear_fine_to_coarse.png'));
