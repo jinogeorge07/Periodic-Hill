@@ -30,7 +30,7 @@ delta_floor = k_cells * h_wall;
 % --- Burns / "optimal" (Brinkman layer) ---
 % eta = c/Re^alpha -> delta_opt = 3.113... * sqrt(c)/Re
 %delta_opt = 3.11346786 * (sqrt(c) / Re);
-delta_opt = 3.11346786 * sqrt(c/Re^(1+alpha)) 
+delta_opt = 3.11346786 * sqrt(c/Re^(1+alpha))
 
 l_shift = delta_opt/sqrt(pi)
 
@@ -54,10 +54,10 @@ delta_star = max([delta_burns, delta_floor]);
 
 %delta_star = min([delta_burns, delta_pe, delta_floor]);
 
- solid_region     = (d_perp <= -delta_star);
- fluid_region     = (d_perp >=  delta_star);
- interface_region = ~(solid_region | fluid_region);
- combined_region = (fluid_region | interface_region)
+solid_region     = (d_perp <= -delta_star);
+fluid_region     = (d_perp >=  delta_star);
+interface_region = ~(solid_region | fluid_region);
+combined_region = (fluid_region | interface_region)
 
 % --- debug prints (matching your Python prints) ---
 fprintf('dx_wall = %.10g\n', dx_wall);
@@ -73,10 +73,10 @@ fprintf('s used                       = %.10g\n', s);
 % --- final mask ---
 mask_smooth = 0.5 * (1 - erf( sqrt(pi) * (d_perp ./ delta_star) )) * mask_const;
 
- % return region flags
-    mask_smooth_solid = solid_region;
-    mask_smooth_fluid = fluid_region;
-    mask_smooth_interface = interface_region;
-    mask_smooth_combined = combined_region;
+% return region flags
+mask_smooth_solid = solid_region;
+mask_smooth_fluid = fluid_region;
+mask_smooth_interface = interface_region;
+mask_smooth_combined = combined_region;
 
 end

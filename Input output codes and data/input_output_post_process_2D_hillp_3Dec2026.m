@@ -1,7 +1,7 @@
 % Input Output Post Processing for 2 way coupled flow
 clc; clear all; close all;
 %% Add path for color profile---------------------------------------------------------
-%folderpath = 'E:/dedalus/Wavy Wall/dedalus_local_Re75_3/snapshots_channel/mean_v_Re75.00_c1.00'  
+%folderpath = 'E:/dedalus/Wavy Wall/dedalus_local_Re75_3/snapshots_channel/mean_v_Re75.00_c1.00'
 folderpath = 'E:/dedalus/Wavy Wall/flexible signed distance function/opt_erf_peclet/dedalus_local_Re190_nek5000_hill_ubulk_2D/snapshots_channel/mean_v_Re190.00_c1.00'
 cd(folderpath)
 addpath('/gpfs/homefs1/jig23007/ray_tracing_matlab/cbrewer2-master');
@@ -28,10 +28,10 @@ C  = 1/6;
 % plot(x_val,y1_vals)
 % hold on
 % quiver = "OFF";
-kz_idx = 20; 
+kz_idx = 20;
 load('stability_results_Re190_132x108_kz20.mat');   % expects x,y,U_hat,V_hat,W_hat,kz_list,c_list,omega
 
-%load('stability_results_kz32_60x48.mat'); 
+%load('stability_results_kz32_60x48.mat');
 %load('stability_results.mat');   % expects x,y,U_hat,V_hat,W_hat,kz_list,c_list,omega
 
 show_velocity = "true";
@@ -39,7 +39,7 @@ compute_singular_value = "false"
 mesh_independence = "false"
 c_number = 12; % 96 % MULTIPLE OF NUMBER OF CORES
 % ---- choose the kz index you ran (adjust if needed) ----
-                    % <--- set to the i you used in the run
+% <--- set to the i you used in the run
 kz = kz_list(kz_idx);
 
 load data_x.mat
@@ -62,7 +62,7 @@ y1_vals = y1_vals - 1.5;
 Umean_coarse  = interp2(X_old, Y_old, u_mean_zt, Xc, Yc, 'linear');  % note transpose
 [dUdx_coarse, dUdy_coarse] = gradient(Umean_coarse, x, y);
 
-% Shear layer 
+% Shear layer
 % define a "large shear" mask from |dUdy|; tweak 0.4 if needed
 th_shear   = 0.4 * max(abs(dUdy_coarse(:)));      % 40% of max shear
 shear_mask = abs(dUdy_coarse) > th_shear;
@@ -134,14 +134,14 @@ if compute_singular_value == "true"
             max_Vhat_72x60 = squeeze(max(max(V_hat, [], 1), [], 2));
             save('max_Uhat_72x60.mat','max_Uhat_72x60');
             save('max_Vhat_72x60.mat','max_Vhat_72x60');
-    
+
         elseif Ny == 132
             % Maximum Response mode value
             max_Uhat_132x108 = squeeze(max(max(U_hat, [], 1), [], 2));
             max_Vhat_132x108 = squeeze(max(max(V_hat, [], 1), [], 2));
             save('max_Uhat_132x108.mat','max_Uhat_132x108');
             save('max_Vhat_132x108.mat','max_Vhat_132x108');
-        
+
         end
 
     end
@@ -179,189 +179,189 @@ Lx        = 9.0;                        % for last x–tick
 
 if show_velocity == "true"
 
-for i = 1:min(12, size(U_hat,3))
-    
-    crit_contour = Umean_coarse - c_list(i);   % Ny x Nx
-    % ---------- U: contour Response mode ----------
-    fU1 = figure('Visible','off','Position',[100 100 1000 800]);
+    for i = 1:min(12, size(U_hat,3))
 
-    % Copy U and blank out the solid region
-    U_plot = U_hat(:,:,i);
-    U_plot(solid_mask) = NaN;      % hide solid, keep fluid only
-    contourf(x, y, U_plot, 40, 'LineWidth', 0.5);
-    hold on
-    shading interp
-    colormap(bluewhitered);                     % ensures the center color is white
-    %contour(x, y, crit_contour, [0 0], 'k', 'LineWidth', 2);   % critical layer
-    caxis([-max(abs(U_plot(:))) max(abs(U_plot(:)))]);  % ensures 0 is centered
-    hold on
-   
-    
-    % fill solid patch 
-    fill_patch_hillp;
-    plot(data_x, y1_vals, 'k', 'LineWidth', 2);   % thick black curve
-    hold on
-    
-    hillp_tick_function;
+        crit_contour = Umean_coarse - c_list(i);   % Ny x Nx
+        % ---------- U: contour Response mode ----------
+        fU1 = figure('Visible','off','Position',[100 100 1000 800]);
 
-    saveas(fU1, fullfile(snapdir, sprintf('U_response_c%02d_kz%g.png', i, kz)));
-    % or exportgraphics if you prefer
-    % exportgraphics(fU1, fullfile(snapdir, ...), 'Resolution', 300);
-
-    close(fU1);
-
-    % ---------- U: contour forcing mode ----------
-    fU3 = figure('Visible','off','Position',[100 100 1000 800]);
-    %contourf(x, y, U2_hat(:,:,i), 30, 'LineWidth', 1/2);
-    % Copy U and blank out the solid region
-    U2_plot = U2_hat(:,:,i);
-    U2_plot(solid_mask) = NaN;      % hide solid, keep fluid only
-    contourf(x, y, U2_plot, 40, 'LineWidth', 0.5);
-    shading interp
-    colormap(bluewhitered);                     % ensures the center color is white
-    caxis([-max(abs(U2_plot(:))) max(abs(U2_plot(:)))]);  % ensures 0 is centered
-    hold on
-    
-    % fill solid patch 
-    fill_patch_hillp;
-    plot(data_x, y1_vals, 'k', 'LineWidth', 2);   % thick black curve
-    hold on
-
-    hillp_tick_function;
-    saveas(fU3, fullfile(snapdir, sprintf('X_forcing_c%02d_kz%g.png', i, kz)));
-
-%     exportgraphics(gcf, fullfile(snapdir, sprintf('X_forcing_c%02d_kz%g.png', i, kz)), 'Resolution', 300);
-%     close(fU3);
-
-    % ---------- V: contour response mode----------
-    fV1 = figure('Visible','off','Position',[100 100 1000 800]);
-    %contourf(x, y, V_hat(:,:,i), 30, 'LineWidth', 1/2);
-    
-    %% Copy U and blank out the solid region
-    % Copy U and blank out the solid region
-    V_plot = V_hat(:,:,i);
-    V_plot(solid_mask) = NaN;      % hide solid, keep fluid only
-    contourf(x, y, V_plot, 40, 'LineWidth', 0.5);
-    shading interp
-    colormap(bluewhitered);                     % ensures the center color is white
-    %hold on
-    %contour(x, y, crit_contour, [0 0], 'k', 'LineWidth', 2);   % critical layer
-    caxis([-max(abs(V_plot(:))) max(abs(V_plot(:)))]);  % ensures 0 is centered
-    hold on
-    
-    % fill solid patch 
-    fill_patch_hillp;
-    plot(data_x, y1_vals, 'k', 'LineWidth', 2);   % thick black curve
-    hold on
-
-    hillp_tick_function;
-    saveas(fV1, fullfile(snapdir, sprintf('V_response_c%02d_kz%g.png', i, kz)));
-
-   % exportgraphics(gcf, fullfile(snapdir, sprintf('V_response_c%02d_kz%g.png', i, kz)), 'Resolution', 300);
-    close(fV1);
-
-    % ---------- V: contour forcing mode----------
-    fV3 = figure('Visible','off','Position',[100 100 1000 800]);
-    %contourf(x, y, V2_hat(:,:,i), 30, 'LineWidth', 1/2);
-
-    %% Copy U and blank out the solid region
-    V2_plot = V2_hat(:,:,i);
-    V2_plot(solid_mask) = NaN;      % hide solid, keep fluid only
-    contourf(x, y, V2_plot, 40, 'LineWidth', 0.5);
-    shading interp
-    colormap(bluewhitered);                     % ensures the center color is white
-    caxis([-max(abs(V2_plot(:))) max(abs(V2_plot(:)))]);  % ensures 0 is centered
-    hold on
-
-    % fill solid patch 
-    fill_patch_hillp;
-    plot(data_x, y1_vals, 'k', 'LineWidth', 2);   % thick black curve
-    hold on
-
-    hillp_tick_function;
-    saveas(fV3, fullfile(snapdir, sprintf('Y_forcing_c%02d_kz%g.png', i, kz)));
-
-    %exportgraphics(gcf, fullfile(snapdir, sprintf('Y_forcing_c%02d_kz%g.png', i, kz)), 'Resolution', 300);
-    close(fV3);
+        % Copy U and blank out the solid region
+        U_plot = U_hat(:,:,i);
+        U_plot(solid_mask) = NaN;      % hide solid, keep fluid only
+        contourf(x, y, U_plot, 40, 'LineWidth', 0.5);
+        hold on
+        shading interp
+        colormap(bluewhitered);                     % ensures the center color is white
+        %contour(x, y, crit_contour, [0 0], 'k', 'LineWidth', 2);   % critical layer
+        caxis([-max(abs(U_plot(:))) max(abs(U_plot(:)))]);  % ensures 0 is centered
+        hold on
 
 
-    % ---------- W: contour Response mode ----------
-    fW1 = figure('Visible','off','Position',[100 100 1000 800]);
-    %contourf(x, y, W_hat(:,:,i), 30, 'LineWidth', 1/2);
-    
-    %% Copy U and blank out the solid region
-    W_plot = W_hat(:,:,i);
-    W_plot(solid_mask) = NaN;      % hide solid, keep fluid only
-    contourf(x, y, W_plot, 40, 'LineWidth', 1/2);
-    shading interp
-    colormap(bluewhitered);                     % ensures the center color is white
-    caxis([-max(abs(W_plot(:))) max(abs(W_plot(:)))]);  % ensures 0 is centered
-    hold on
-    
-    % fill solid patch 
-    fill_patch_hillp;
-    plot(data_x, y1_vals, 'k', 'LineWidth', 2);   % thick black curve
-    hold on
+        % fill solid patch
+        fill_patch_hillp;
+        plot(data_x, y1_vals, 'k', 'LineWidth', 2);   % thick black curve
+        hold on
 
-    hillp_tick_function;
-    saveas(fW1, fullfile(snapdir, sprintf('W_response_c%02d_kz%g.png', i, kz)));
-    %exportgraphics(gcf, fullfile(snapdir, sprintf('W_response_c%02d_kz%g.png', i, kz)), 'Resolution', 300);
-    close(fW1);
+        hillp_tick_function;
 
-    % ---------- Z: contour Forcing mode ----------
-    fW3 = figure('Visible','off','Position',[100 100 1000 800]);
-    %contourf(x, y, W2_hat(:,:,i), 30, 'LineWidth', 1/2);
-    %% Copy U and blank out the solid region
-    W2_plot = W2_hat(:,:,i);
-    W2_plot(solid_mask) = NaN;      % hide solid, keep fluid only
-    contourf(x, y, W2_plot, 40, 'LineWidth', 1/2);
-    shading interp
-    colormap(bluewhitered);                     % ensures the center color is white
-    caxis([-max(abs(W2_plot(:))) max(abs(W2_plot(:)))]);  % ensures 0 is centered
-    hold on
+        saveas(fU1, fullfile(snapdir, sprintf('U_response_c%02d_kz%g.png', i, kz)));
+        % or exportgraphics if you prefer
+        % exportgraphics(fU1, fullfile(snapdir, ...), 'Resolution', 300);
 
-    % fill solid patch 
-    fill_patch_hillp;
-    plot(data_x, y1_vals, 'k', 'LineWidth', 2);   % thick black curve
-    hold on
+        close(fU1);
 
-    hillp_tick_function;
-    saveas(fW3, fullfile(snapdir, sprintf('Z_forcing_c%02d_kz%g.png', i, kz)));
-    %exportgraphics(gcf, fullfile(snapdir, sprintf('Z_forcing_c%02d_kz%g.png', i, kz)), 'Resolution', 300);
-    close(fW3);
+        % ---------- U: contour forcing mode ----------
+        fU3 = figure('Visible','off','Position',[100 100 1000 800]);
+        %contourf(x, y, U2_hat(:,:,i), 30, 'LineWidth', 1/2);
+        % Copy U and blank out the solid region
+        U2_plot = U2_hat(:,:,i);
+        U2_plot(solid_mask) = NaN;      % hide solid, keep fluid only
+        contourf(x, y, U2_plot, 40, 'LineWidth', 0.5);
+        shading interp
+        colormap(bluewhitered);                     % ensures the center color is white
+        caxis([-max(abs(U2_plot(:))) max(abs(U2_plot(:)))]);  % ensures 0 is centered
+        hold on
+
+        % fill solid patch
+        fill_patch_hillp;
+        plot(data_x, y1_vals, 'k', 'LineWidth', 2);   % thick black curve
+        hold on
+
+        hillp_tick_function;
+        saveas(fU3, fullfile(snapdir, sprintf('X_forcing_c%02d_kz%g.png', i, kz)));
+
+        %     exportgraphics(gcf, fullfile(snapdir, sprintf('X_forcing_c%02d_kz%g.png', i, kz)), 'Resolution', 300);
+        %     close(fU3);
+
+        % ---------- V: contour response mode----------
+        fV1 = figure('Visible','off','Position',[100 100 1000 800]);
+        %contourf(x, y, V_hat(:,:,i), 30, 'LineWidth', 1/2);
+
+        %% Copy U and blank out the solid region
+        % Copy U and blank out the solid region
+        V_plot = V_hat(:,:,i);
+        V_plot(solid_mask) = NaN;      % hide solid, keep fluid only
+        contourf(x, y, V_plot, 40, 'LineWidth', 0.5);
+        shading interp
+        colormap(bluewhitered);                     % ensures the center color is white
+        %hold on
+        %contour(x, y, crit_contour, [0 0], 'k', 'LineWidth', 2);   % critical layer
+        caxis([-max(abs(V_plot(:))) max(abs(V_plot(:)))]);  % ensures 0 is centered
+        hold on
+
+        % fill solid patch
+        fill_patch_hillp;
+        plot(data_x, y1_vals, 'k', 'LineWidth', 2);   % thick black curve
+        hold on
+
+        hillp_tick_function;
+        saveas(fV1, fullfile(snapdir, sprintf('V_response_c%02d_kz%g.png', i, kz)));
+
+        % exportgraphics(gcf, fullfile(snapdir, sprintf('V_response_c%02d_kz%g.png', i, kz)), 'Resolution', 300);
+        close(fV1);
+
+        % ---------- V: contour forcing mode----------
+        fV3 = figure('Visible','off','Position',[100 100 1000 800]);
+        %contourf(x, y, V2_hat(:,:,i), 30, 'LineWidth', 1/2);
+
+        %% Copy U and blank out the solid region
+        V2_plot = V2_hat(:,:,i);
+        V2_plot(solid_mask) = NaN;      % hide solid, keep fluid only
+        contourf(x, y, V2_plot, 40, 'LineWidth', 0.5);
+        shading interp
+        colormap(bluewhitered);                     % ensures the center color is white
+        caxis([-max(abs(V2_plot(:))) max(abs(V2_plot(:)))]);  % ensures 0 is centered
+        hold on
+
+        % fill solid patch
+        fill_patch_hillp;
+        plot(data_x, y1_vals, 'k', 'LineWidth', 2);   % thick black curve
+        hold on
+
+        hillp_tick_function;
+        saveas(fV3, fullfile(snapdir, sprintf('Y_forcing_c%02d_kz%g.png', i, kz)));
+
+        %exportgraphics(gcf, fullfile(snapdir, sprintf('Y_forcing_c%02d_kz%g.png', i, kz)), 'Resolution', 300);
+        close(fV3);
 
 
-%     if quiver == "ON"
-%       % ---------- (U,V) quiver ----------
-%     fQ = figure('Visible','off','Position',[100 100 1000 800]);
-%     % optional light background: magnitude of (u,v) for context
-%     contourf(x, y, hypot(U_hat(:,:,i), V_hat(:,:,i)), 20, 'LineStyle','none'); 
-%     colorbar; hold on
-% 
-%     % quiver of (u,v) on downsampled grid
-%     quiver(Xs, Ys, ...
-%            U_hat(1:qstep:end, 1:qstep:end, i), ...
-%            V_hat(1:qstep:end, 1:qstep:end, i), ...
-%            'k');  % black arrows
-%     if hasBWR, colormap(bluewhitered); end
-%     xlabel('x','FontSize',16); ylabel('y','FontSize',16);
-%         title(sprintf('Quiver of (u,v), c\\_index=%d, kz=%g', i, kz));
-% 
-%     % overlay your geometry markers if present
-%     if exist('x_solid','var') && exist('y_solid','var')
-%         plot(x_solid, y_solid, '.', 'Color', 'k');
-%     end
-%     
-%     if haveWalls
-%         plot(x_val, y1_vals, 'k'); 
-%         plot(x_val, y2_vals, 'k');
-%     end
-% 
-%     saveas(fQ, fullfile(snapdir, sprintf('UV_quiver_c%02d_kz%g.png', i, kz)));
-%     close(fQ);
-%     end
+        % ---------- W: contour Response mode ----------
+        fW1 = figure('Visible','off','Position',[100 100 1000 800]);
+        %contourf(x, y, W_hat(:,:,i), 30, 'LineWidth', 1/2);
 
-end
+        %% Copy U and blank out the solid region
+        W_plot = W_hat(:,:,i);
+        W_plot(solid_mask) = NaN;      % hide solid, keep fluid only
+        contourf(x, y, W_plot, 40, 'LineWidth', 1/2);
+        shading interp
+        colormap(bluewhitered);                     % ensures the center color is white
+        caxis([-max(abs(W_plot(:))) max(abs(W_plot(:)))]);  % ensures 0 is centered
+        hold on
+
+        % fill solid patch
+        fill_patch_hillp;
+        plot(data_x, y1_vals, 'k', 'LineWidth', 2);   % thick black curve
+        hold on
+
+        hillp_tick_function;
+        saveas(fW1, fullfile(snapdir, sprintf('W_response_c%02d_kz%g.png', i, kz)));
+        %exportgraphics(gcf, fullfile(snapdir, sprintf('W_response_c%02d_kz%g.png', i, kz)), 'Resolution', 300);
+        close(fW1);
+
+        % ---------- Z: contour Forcing mode ----------
+        fW3 = figure('Visible','off','Position',[100 100 1000 800]);
+        %contourf(x, y, W2_hat(:,:,i), 30, 'LineWidth', 1/2);
+        %% Copy U and blank out the solid region
+        W2_plot = W2_hat(:,:,i);
+        W2_plot(solid_mask) = NaN;      % hide solid, keep fluid only
+        contourf(x, y, W2_plot, 40, 'LineWidth', 1/2);
+        shading interp
+        colormap(bluewhitered);                     % ensures the center color is white
+        caxis([-max(abs(W2_plot(:))) max(abs(W2_plot(:)))]);  % ensures 0 is centered
+        hold on
+
+        % fill solid patch
+        fill_patch_hillp;
+        plot(data_x, y1_vals, 'k', 'LineWidth', 2);   % thick black curve
+        hold on
+
+        hillp_tick_function;
+        saveas(fW3, fullfile(snapdir, sprintf('Z_forcing_c%02d_kz%g.png', i, kz)));
+        %exportgraphics(gcf, fullfile(snapdir, sprintf('Z_forcing_c%02d_kz%g.png', i, kz)), 'Resolution', 300);
+        close(fW3);
+
+
+        %     if quiver == "ON"
+        %       % ---------- (U,V) quiver ----------
+        %     fQ = figure('Visible','off','Position',[100 100 1000 800]);
+        %     % optional light background: magnitude of (u,v) for context
+        %     contourf(x, y, hypot(U_hat(:,:,i), V_hat(:,:,i)), 20, 'LineStyle','none');
+        %     colorbar; hold on
+        %
+        %     % quiver of (u,v) on downsampled grid
+        %     quiver(Xs, Ys, ...
+        %            U_hat(1:qstep:end, 1:qstep:end, i), ...
+        %            V_hat(1:qstep:end, 1:qstep:end, i), ...
+        %            'k');  % black arrows
+        %     if hasBWR, colormap(bluewhitered); end
+        %     xlabel('x','FontSize',16); ylabel('y','FontSize',16);
+        %         title(sprintf('Quiver of (u,v), c\\_index=%d, kz=%g', i, kz));
+        %
+        %     % overlay your geometry markers if present
+        %     if exist('x_solid','var') && exist('y_solid','var')
+        %         plot(x_solid, y_solid, '.', 'Color', 'k');
+        %     end
+        %
+        %     if haveWalls
+        %         plot(x_val, y1_vals, 'k');
+        %         plot(x_val, y2_vals, 'k');
+        %     end
+        %
+        %     saveas(fQ, fullfile(snapdir, sprintf('UV_quiver_c%02d_kz%g.png', i, kz)));
+        %     close(fQ);
+        %     end
+
+    end
 
 end
 sigma_list = result_sigma(:,kz_idx)

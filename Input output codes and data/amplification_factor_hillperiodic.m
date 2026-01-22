@@ -65,19 +65,19 @@ if compute_deviation == "true"
     ylabel('Deviation in singular value \sigma', 'FontSize', 20);
 
     legend({ ...
-    sprintf('\\Delta kz = %.2f', kz_list(5)), ...
-    sprintf('\\Delta kz = %.2f', kz_list(10)), ...
-    sprintf('\\Delta kz = %.2f', kz_list(20)), ...
-    sprintf('\\Delta kz = %.2f', kz_list(32))}, ...
-    'FontSize', 18, 'Location', 'northwest');
+        sprintf('\\Delta kz = %.2f', kz_list(5)), ...
+        sprintf('\\Delta kz = %.2f', kz_list(10)), ...
+        sprintf('\\Delta kz = %.2f', kz_list(20)), ...
+        sprintf('\\Delta kz = %.2f', kz_list(32))}, ...
+        'FontSize', 18, 'Location', 'northwest');
 
-% Set axis tick label font size
-set(gca, 'FontSize', 20);
-lgd = legend;
-set(lgd, 'Color', 'none');   % remove background
-set(lgd, 'Box', 'off');      % optional: remove border
+    % Set axis tick label font size
+    set(gca, 'FontSize', 20);
+    lgd = legend;
+    set(lgd, 'Color', 'none');   % remove background
+    set(lgd, 'Box', 'off');      % optional: remove border
 
-saveas(gcf, 'resolvent_spectrum_deviation.png');
+    saveas(gcf, 'resolvent_spectrum_deviation.png');
 
 end
 

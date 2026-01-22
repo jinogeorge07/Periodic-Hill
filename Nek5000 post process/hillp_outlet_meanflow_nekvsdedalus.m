@@ -1,6 +1,6 @@
 % Read Nek5000 output data
 clc; clear all;close all;
-folderpath = 'C:/Users/jinog/Documents/MATLAB/hillp'  
+folderpath = 'C:/Users/jinog/Documents/MATLAB/hillp'
 cd(folderpath)
 
 
@@ -20,7 +20,7 @@ nlevels = 30;
 file_start = 700;
 file_end   = 700;
 nf = file_end - file_start + 1;
-rwb1 = bluewhitered; 
+rwb1 = bluewhitered;
 % --- read first file as reference ---
 for i=1:nf
     %fname{i} = ['nek_mean_flow_750-1500timeunits_U.csv'];
@@ -28,74 +28,74 @@ for i=1:nf
     hillp_out{i} = readmatrix(fname{i});
 
 
-% columns in hillp_out:
-% 1=u, 2=v, ..., 6=x, 7=y
-% x_all = hillp_out{i}(:,5);
-% y_all = hillp_out{i}(:,6);
-% u_all = hillp_out{i}(:,1);
-% v_all = hillp_out{i}(:,2);
+    % columns in hillp_out:
+    % 1=u, 2=v, ..., 6=x, 7=y
+    % x_all = hillp_out{i}(:,5);
+    % y_all = hillp_out{i}(:,6);
+    % u_all = hillp_out{i}(:,1);
+    % v_all = hillp_out{i}(:,2);
 
 
-x_all = hillp_out{i}(:,4);
-y_all = hillp_out{i}(:,5);
-u_all = hillp_out{i}(:,1);
-v_all = hillp_out{i}(:,2);
-x_list = unique(x_all);
+    x_all = hillp_out{i}(:,4);
+    y_all = hillp_out{i}(:,5);
+    u_all = hillp_out{i}(:,1);
+    v_all = hillp_out{i}(:,2);
+    x_list = unique(x_all);
 
-% how many y-samples per x-column (some columns may be oversampled)
-counts = zeros(numel(x_list),1);
-for ii = 1:numel(x_list)
-    counts(ii) = sum(x_all == x_list(ii));
-end
-base_count = mode(counts);   % baseline Ny per column (e.g., 64)
+    % how many y-samples per x-column (some columns may be oversampled)
+    counts = zeros(numel(x_list),1);
+    for ii = 1:numel(x_list)
+        counts(ii) = sum(x_all == x_list(ii));
+    end
+    base_count = mode(counts);   % baseline Ny per column (e.g., 64)
 
-% (optional) keep your ny consistent with what's in the file
-% if you already set ny, you can assert they match or just use base_count.
-% ny = base_count;
+    % (optional) keep your ny consistent with what's in the file
+    % if you already set ny, you can assert they match or just use base_count.
+    % ny = base_count;
 
-% preallocate using the detected baseline
-y_2D{i} = nan(numel(x_list), base_count);
-x_2D{i} = nan(numel(x_list), base_count);
-u_2D{i} = nan(numel(x_list), base_count);
-v_2D{i} = nan(numel(x_list), base_count);
+    % preallocate using the detected baseline
+    y_2D{i} = nan(numel(x_list), base_count);
+    x_2D{i} = nan(numel(x_list), base_count);
+    u_2D{i} = nan(numel(x_list), base_count);
+    v_2D{i} = nan(numel(x_list), base_count);
 
-for xi = 1:numel(x_list)
-    nek_ind = find(x_all == x_list(xi));
-    % sort this column by y
-    col = sortrows([y_all(nek_ind), u_all(nek_ind), v_all(nek_ind), x_all(nek_ind)], 1);
-    ny_here = size(col,1);
+    for xi = 1:numel(x_list)
+        nek_ind = find(x_all == x_list(xi));
+        % sort this column by y
+        col = sortrows([y_all(nek_ind), u_all(nek_ind), v_all(nek_ind), x_all(nek_ind)], 1);
+        ny_here = size(col,1);
 
-    if ny_here == base_count
-        take = 1:ny_here;
-    else
-        % integer decimation if oversampled (2x, 3x, ...)
-        k = max(1, round(ny_here / base_count));
-        take = 1:k:ny_here;
-        % enforce exact length (handles tiny non-integer ratios / dup nodes)
-        if numel(take) ~= base_count
-            take = round(linspace(1, ny_here, base_count));
+        if ny_here == base_count
+            take = 1:ny_here;
+        else
+            % integer decimation if oversampled (2x, 3x, ...)
+            k = max(1, round(ny_here / base_count));
+            take = 1:k:ny_here;
+            % enforce exact length (handles tiny non-integer ratios / dup nodes)
+            if numel(take) ~= base_count
+                take = round(linspace(1, ny_here, base_count));
+            end
         end
+
+        y_2D{i}(xi,:) = col(take,1).';
+        u_2D{i}(xi,:) = col(take,2).';
+        v_2D{i}(xi,:) = col(take,3).';
+        x_2D{i}(xi,:) = col(take,4).';
     end
 
-    y_2D{i}(xi,:) = col(take,1).';
-    u_2D{i}(xi,:) = col(take,2).';
-    v_2D{i}(xi,:) = col(take,3).';
-    x_2D{i}(xi,:) = col(take,4).';
-end
-
-% figure;
-% contourf(x_2D{i},y_2D{i},u_2D{i},nlevels);
-% shading interp
-% colormap(rwb1);
-% colorbar
-% hold on
-% 
-% figure;
-% contourf(x_2D{i},y_2D{i},v_2D{i},nlevels);
-% shading interp
-% colormap(rwb1);
-% colorbar
-% hold on
+    % figure;
+    % contourf(x_2D{i},y_2D{i},u_2D{i},nlevels);
+    % shading interp
+    % colormap(rwb1);
+    % colorbar
+    % hold on
+    %
+    % figure;
+    % contourf(x_2D{i},y_2D{i},v_2D{i},nlevels);
+    % shading interp
+    % colormap(rwb1);
+    % colorbar
+    % hold on
 
 end
 
@@ -107,13 +107,13 @@ Ustack = nan(Nx,Ny,nf);
 Vstack = nan(Nx,Ny,nf);
 
 for i = 1:nf
-%     if ~isequal(size(u_2D{i}), [Nx,Ny]) || ~isequal(size(v_2D{i}), [Nx,Ny])
-%         error('Size mismatch at i=%d. Some timestep has different base_count/Nx.', i);
-%     end
-%     % Optional but recommended: ensure grids match too
-%     if max(abs(x_2D{i}(:) - x_2D{1}(:))) > 1e-12 || max(abs(y_2D{i}(:) - y_2D{1}(:))) > 1e-12
-%         error('Grid mismatch at i=%d (x_2D/y_2D differs).', i);
-%     end
+    %     if ~isequal(size(u_2D{i}), [Nx,Ny]) || ~isequal(size(v_2D{i}), [Nx,Ny])
+    %         error('Size mismatch at i=%d. Some timestep has different base_count/Nx.', i);
+    %     end
+    %     % Optional but recommended: ensure grids match too
+    %     if max(abs(x_2D{i}(:) - x_2D{1}(:))) > 1e-12 || max(abs(y_2D{i}(:) - y_2D{1}(:))) > 1e-12
+    %         error('Grid mismatch at i=%d (x_2D/y_2D differs).', i);
+    %     end
 
     u_2D_mean = u_2D{i};
     v_2D_mean = v_2D{i};
@@ -124,10 +124,10 @@ end
 x_mean = x_2D{1};
 y_mean = y_2D{1};
 
-%% U mean nek 
+%% U mean nek
 
 fig = figure;
-set(fig, 'Position', [100, 100, 1000, 800]); 
+set(fig, 'Position', [100, 100, 1000, 800]);
 contourf(x_mean, y_mean, u_2D_mean, nlevels);
 shading interp
 colormap(rwb1);
@@ -181,7 +181,7 @@ saveas(gcf, 'U_nek.png');
 
 %% V nek ------------------------------------------------------------------
 fig = figure;
-set(fig, 'Position', [100, 100, 1000, 800]); 
+set(fig, 'Position', [100, 100, 1000, 800]);
 
 contourf(x_mean, y_mean, v_2D_mean, nlevels);
 shading interp
@@ -260,18 +260,18 @@ v_xy1 = v_xy{12};
 % % Evaluate on Dedalus grid
 % F_u = griddata(x_flat,y_flat,u_flat,x_new,y_new);
 % F_v = griddata(x_flat,y_flat,v_flat,x_new,y_new);
-% 
+%
 % F_u = reshape(F_u,size(X));
 % F_v = reshape(F_v,size(Y));
 
-%U_nek2ded = interp2(x_2D,y_2D,u_2D,X_fluid,Y_fluid); 
+%U_nek2ded = interp2(x_2D,y_2D,u_2D,X_fluid,Y_fluid);
 
 % Create interpolants
 F_u = scatteredInterpolant(x_flat, y_flat, u_flat, 'linear',  'nearest');
 F_v = scatteredInterpolant(x_flat, y_flat, v_flat, 'linear',  'nearest');
 
 U_nek2ded = F_u(X_fluid, Y_fluid);
-    
+
 V_nek2ded = F_v(X_fluid, Y_fluid);
 
 % U_nek2ded_ts1840 = F_u(X,Y);
@@ -282,10 +282,10 @@ V_nek2ded = F_v(X_fluid, Y_fluid);
 
 % load("u_nek2ded_ts2000.mat")
 % load("v_nek2ded_ts2000.mat")
-% 
+%
 % diff_u_nek = U_nek2ded_ts1840 - U_nek2ded;
 % diff_v_nek = V_nek2ded_ts1840 - V_nek2ded;
-% 
+%
 % % see if velocity has reached steady state
 % figure;
 % plot(diff_u_nek);
@@ -308,10 +308,10 @@ V_nek2ded = F_v(X_fluid, Y_fluid);
 % c.Ticks = newTicks;
 % % Update labels to show actual values
 % c.TickLabels = arrayfun(@(x) num2str(x), newTicks, 'UniformOutput', false);
-% saveas(gcf, 'U_nek2ded_interp1.png'); 
+% saveas(gcf, 'U_nek2ded_interp1.png');
 % hold on
-% 
-% 
+%
+%
 % figure;
 % contour(X,Y,V_nek2ded,nlevels);
 % shading interp
@@ -326,14 +326,14 @@ V_nek2ded = F_v(X_fluid, Y_fluid);
 % c.Ticks = newTicks;
 % % Update labels to show actual values
 % c.TickLabels = arrayfun(@(x) num2str(x), newTicks, 'UniformOutput', false);
-% saveas(gcf, 'V_nek2ded_interp1.png'); 
+% saveas(gcf, 'V_nek2ded_interp1.png');
 % colorbar
 % hold on
 
 %% U nek to Dedalus ( curvilinear to cartesiasn grid)
 fig = figure;
 %set(fig, 'Position', [100, 100, 900, 750]);  % Resize figure
-set(fig, 'Position', [100, 100, 1000, 800]); 
+set(fig, 'Position', [100, 100, 1000, 800]);
 contourf(X, Y, U_nek2ded, nlevels);
 shading interp
 colormap(rwb1);
@@ -374,7 +374,7 @@ hold on
 %% V nek to Dedalus ( curvilinear to cartesiasn grid)
 fig = figure;
 %set(fig, 'Position', [100, 100, 900, 750]);  % Resize figure
-set(fig, 'Position', [100, 100, 1000, 800]); 
+set(fig, 'Position', [100, 100, 1000, 800]);
 contourf(X, Y, V_nek2ded, nlevels);
 shading interp
 colormap(rwb1);
@@ -418,7 +418,7 @@ hold on
 
 % 1) Valid mask using YOUR terms/orientation
 mask = isfinite(U_nek2ded) & isfinite(V_nek2ded) & ...
-       isfinite(u_xy1)    & isfinite(v_xy1);
+    isfinite(u_xy1)    & isfinite(v_xy1);
 
 % 2) Component errors (your orientation: Dedalus transposed)
 error_x = U_nek2ded - u_xy1;
@@ -436,7 +436,7 @@ err_rmse = sqrt(mean(Error.^2));
 err_mae  = mean(abs(Error));
 
 fprintf('Vector error |Δu|:  min=%.4e  mean=%.4e  RMSE=%.4e  max=%.4e\n', ...
-        err_min, err_mean, err_rmse, err_max);
+    err_min, err_mean, err_rmse, err_max);
 
 % 5) Relative errors (vs Nek magnitude)
 
@@ -465,5 +465,5 @@ end
 figure; contourf(E,30,'LineStyle','none'); colorbar
 set(gca,'YDir','normal'); axis tight equal
 title('|u_{ded} - u_{nek}| (vector error magnitude)');
-saveas(gcf, 'error.png'); 
+saveas(gcf, 'error.png');
 hold on; plot(jMax, iMax, 'ko', 'MarkerSize', 8, 'LineWidth', 1.5); hold off

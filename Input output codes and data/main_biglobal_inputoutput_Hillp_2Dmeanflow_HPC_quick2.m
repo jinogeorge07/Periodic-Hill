@@ -49,8 +49,8 @@ load mask_smooth_hillperiodic_120x96.mat
 x_old = data_x; y_old = data_y;
 %y_old = y_old + abs(data_y(1));
 
-%% -------------fine mesh from Dedalus------------------------------------- 
-[X_old, Y_old] = meshgrid(x_old, y_old);  
+%% -------------fine mesh from Dedalus-------------------------------------
+[X_old, Y_old] = meshgrid(x_old, y_old);
 %% ------------------------------------------------------------------------
 
 load u_mean_zt.mat
@@ -62,8 +62,8 @@ load dVdx_mean_zt.mat
 load dVdy_mean_zt.mat
 
 U_f  = u_mean_zt;  V_f  = v_mean_zt;     % [Ny_f x Nx_f]
-Ux_f = dUdx_mean_zt; Uy_f = dUdy_mean_zt; 
-Vx_f = dVdx_mean_zt; Vy_f = dVdy_mean_zt; 
+Ux_f = dUdx_mean_zt; Uy_f = dUdy_mean_zt;
+Vx_f = dVdx_mean_zt; Vy_f = dVdy_mean_zt;
 K_f  = mask_smooth;                        % [Ny_f x Nx_f]
 
 % % interp2 requires increasing vectors; Chebyshev y often descending
@@ -81,7 +81,7 @@ K_f  = mask_smooth;                        % [Ny_f x Nx_f]
 [yc,DM] = chebdif(Ny,2);  D2 = DM(:,:,2);  D1 = DM(:,:,1);
 
 % Scaling
-D1  = -D1*(2/(2+2*epsilon)); 
+D1  = -D1*(2/(2+2*epsilon));
 D2  = D2*(2/(2+2*epsilon))^2;
 Dx  = Dx*(2*pi/Lx);
 Dxx = Dxx*(2*pi/Lx)^2;
@@ -99,7 +99,7 @@ w = w*((2+2*epsilon)/2); % normalize weighted matrix
 
 % w = spdiags(reshape(w,[],1),0,Ny,Ny);
 % w = kron(Ix, diag(w));     % weighted matrix
-w_sqrt = sqrt(w); 
+w_sqrt = sqrt(w);
 w_sqrt = spdiags(w_sqrt',0,Ny,Ny);
 w_sqrt = kron(Ix, w_sqrt);
 
@@ -166,27 +166,27 @@ D_new = spalloc(9*N,3*N, 9*N);
 A_init_new = spalloc(4*N,4*N, 4*N);
 
 zero_matrix = spalloc(N,N, N);
-B_tilde = [w_sqrt_inv zero_matrix zero_matrix; 
-           zero_matrix w_sqrt_inv zero_matrix;
-           zero_matrix zero_matrix w_sqrt_inv;
-           zero_matrix zero_matrix zero_matrix];
+B_tilde = [w_sqrt_inv zero_matrix zero_matrix;
+    zero_matrix w_sqrt_inv zero_matrix;
+    zero_matrix zero_matrix w_sqrt_inv;
+    zero_matrix zero_matrix zero_matrix];
 
 C_tilde = [w_sqrt zero_matrix zero_matrix zero_matrix;
-           zero_matrix w_sqrt zero_matrix zero_matrix;
-           zero_matrix zero_matrix w_sqrt zero_matrix];
+    zero_matrix w_sqrt zero_matrix zero_matrix;
+    zero_matrix zero_matrix w_sqrt zero_matrix];
 
 E = [I zero_matrix zero_matrix zero_matrix;
-     zero_matrix I zero_matrix zero_matrix;
-     zero_matrix zero_matrix I zero_matrix;
-     zero_matrix zero_matrix zero_matrix zero_matrix];
+    zero_matrix I zero_matrix zero_matrix;
+    zero_matrix zero_matrix I zero_matrix;
+    zero_matrix zero_matrix zero_matrix zero_matrix];
 
 % Boundary row indices (3) vectorized
 topRows    = (0:Nx-1)*Ny + 1;
 bottomRows = (1:Nx)*Ny;
 bd = [topRows, bottomRows];
 
-  B_tilde(bd, :)        = 0;  B_tilde(bd+N, :) = 0;  B_tilde(bd+2*N, :) = 0;
-  E(bd, :)        = 0;  E(bd+N, :) = 0;  E(bd+2*N, :) = 0;
+B_tilde(bd, :)        = 0;  B_tilde(bd+N, :) = 0;  B_tilde(bd+2*N, :) = 0;
+E(bd, :)        = 0;  E(bd+N, :) = 0;  E(bd+2*N, :) = 0;
 
 
 % ---- Robust parallel setup: prefer threads; safe up to 4 workers ----
@@ -230,25 +230,25 @@ for i = 20  % pick a kz index (unchanged logic)
 
     % Assemble A (sparse)
     A = -[A11 A12 sparse(N,N) A14; ...
-          A21 A22 sparse(N,N) A24; ...
-          sparse(N,N) sparse(N,N) A33 A34; ...
-          A41 A42 A43 sparse(N,N)];
+        A21 A22 sparse(N,N) A24; ...
+        sparse(N,N) sparse(N,N) A33 A34; ...
+        A41 A42 A43 sparse(N,N)];
 
     % B, C, E (sparse identities in their blocks) (2)
-%     B = spalloc(4*N,3*N, 3*N);
-%     B(1:N,1:N)             = I;
-%     B(N+1:2*N,N+1:2*N)     = I;
-%     B(2*N+1:3*N,2*N+1:3*N) = I;
-% 
-%     E = spalloc(4*N,4*N, 3*N);
-%     E(1:N,1:N)             = I;
-%     E(N+1:2*N,N+1:2*N)     = I;
-%     E(2*N+1:3*N,2*N+1:3*N) = I;
-% 
-%     C = spalloc(3*N,4*N, 3*N);
-%     C(1:N,1:N)             = I;
-%     C(N+1:2*N,N+1:2*N)     = I;
-%     C(2*N+1:3*N,2*N+1:3*N) = I;
+    %     B = spalloc(4*N,3*N, 3*N);
+    %     B(1:N,1:N)             = I;
+    %     B(N+1:2*N,N+1:2*N)     = I;
+    %     B(2*N+1:3*N,2*N+1:3*N) = I;
+    %
+    %     E = spalloc(4*N,4*N, 3*N);
+    %     E(1:N,1:N)             = I;
+    %     E(N+1:2*N,N+1:2*N)     = I;
+    %     E(2*N+1:3*N,2*N+1:3*N) = I;
+    %
+    %     C = spalloc(3*N,4*N, 3*N);
+    %     C(1:N,1:N)             = I;
+    %     C(N+1:2*N,N+1:2*N)     = I;
+    %     C(2*N+1:3*N,2*N+1:3*N) = I;
 
     % (3) Vectorized boundary enforcement on A, and zero same rows in B & E
     bd_all = [bd, bd+N, bd+2*N];  % u,v,w rows in 4N system
@@ -257,23 +257,23 @@ for i = 20  % pick a kz index (unchanged logic)
     A(bd+N, :)      = 0;  A(sub2ind([4*N,4*N], bd+N, bd+N)) = 1;
     A(bd+2*N, :)    = 0;  A(sub2ind([4*N,4*N], bd+2*N, bd+2*N)) = 1;
 
-%     B(bd, :)        = 0;  B(bd+N, :) = 0;  B(bd+2*N, :) = 0;
-%     E(bd, :)        = 0;  E(bd+N, :) = 0;  E(bd+2*N, :) = 0;
+    %     B(bd, :)        = 0;  B(bd+N, :) = 0;  B(bd+2*N, :) = 0;
+    %     E(bd, :)        = 0;  E(bd+N, :) = 0;  E(bd+2*N, :) = 0;
 
     % Penalty (2) sparse blkdiag applied once
     K_block = blkdiag(K, K, K, sparse(N,N));
     A = A - K_block;
 
-%     % Weighting / tilde blocks (unchanged)
-%     C_tilde = blkdiag(w.^0.5, w.^0.5, w.^0.5) * C;
-%     D = blkdiag(w.^0.5, w.^0.5, w.^0.5);
-%     B_tilde = B / D;
+    %     % Weighting / tilde blocks (unchanged)
+    %     C_tilde = blkdiag(w.^0.5, w.^0.5, w.^0.5) * C;
+    %     D = blkdiag(w.^0.5, w.^0.5, w.^0.5);
+    %     B_tilde = B / D;
 
-%     % keep sparse
-%     A = sparse(A);
-%     B_tilde = sparse(B_tilde);
-%     C_tilde = sparse(C_tilde);
-%     E = sparse(E);
+    %     % keep sparse
+    %     A = sparse(A);
+    %     B_tilde = sparse(B_tilde);
+    %     C_tilde = sparse(C_tilde);
+    %     E = sparse(E);
 
     % cache per i (5)
     A_s = A; E_s = E; B_s = B_tilde; C_s = C_tilde;
@@ -298,49 +298,49 @@ for i = 20  % pick a kz index (unchanged logic)
     C_c = parallel.pool.Constant(C_s);
 
     parfor c_index = 1:c_number
-    sigma1 = NaN; Hv1 = [];
+        sigma1 = NaN; Hv1 = [];
 
-    % pull shared matrices from Constants (no worker copies)
-    A_loc = A_c.Value;  E_loc = E_c.Value;  B_loc = B_c.Value;  C_loc = C_c.Value;
+        % pull shared matrices from Constants (no worker copies)
+        A_loc = A_c.Value;  E_loc = E_c.Value;  B_loc = B_c.Value;  C_loc = C_c.Value;
 
-    omega(c_index) = -c_list(c_index) * kx;
-    omega_val = omega(c_index);
+        omega(c_index) = -c_list(c_index) * kx;
+        omega_val = omega(c_index);
 
-    switch solver
-        case 'svds'
-            M   = decomposition(1i*omega_val*E_loc - A_loc, 'lu');
-            M_T = decomposition((1i*omega_val*E_loc - A_loc)', 'lu');
+        switch solver
+            case 'svds'
+                M   = decomposition(1i*omega_val*E_loc - A_loc, 'lu');
+                M_T = decomposition((1i*omega_val*E_loc - A_loc)', 'lu');
 
-            Aop    = @(x) M \ (B_loc * x);
-            Aadjop = @(x) (B_loc' * (M_T \ (C_loc' * x)));
-            Hhandle = @(x,flag) Hfun_wrapper_LU(x, flag, Aop, Aadjop, C_loc);
+                Aop    = @(x) M \ (B_loc * x);
+                Aadjop = @(x) (B_loc' * (M_T \ (C_loc' * x)));
+                Hhandle = @(x,flag) Hfun_wrapper_LU(x, flag, Aop, Aadjop, C_loc);
 
-            m = size(C_loc,1);
-            n = size(B_loc,2);
+                m = size(C_loc,1);
+                n = size(B_loc,2);
 
-            [U_svd, S2_svd, V_svd] = svds(Hhandle, [m,n], 1, 'largest', opts);
-            U1_svd = U_svd;  V1_svd = V_svd;  sigma1 = S2_svd(1,1);
+                [U_svd, S2_svd, V_svd] = svds(Hhandle, [m,n], 1, 'largest', opts);
+                U1_svd = U_svd;  V1_svd = V_svd;  sigma1 = S2_svd(1,1);
 
-            Hv1 = C_loc * Aop(V1_svd);
+                Hv1 = C_loc * Aop(V1_svd);
 
-        case 'svd'
-            H = C_loc * ((1i*omega_val*E_loc - A_loc) \ B_loc);
-            [U_svd, S2_svd, V_svd] = svd(H, 'econ');
-            U1_svd = U_svd(:,1); V1_svd = V_svd(:,1); sigma1 = S2_svd(1,1);
+            case 'svd'
+                H = C_loc * ((1i*omega_val*E_loc - A_loc) \ B_loc);
+                [U_svd, S2_svd, V_svd] = svd(H, 'econ');
+                U1_svd = U_svd(:,1); V1_svd = V_svd(:,1); sigma1 = S2_svd(1,1);
 
-            Hv1 = C_loc * ((1i*omega_val*E_loc - A_loc) \ (B_loc * V1_svd));
+                Hv1 = C_loc * ((1i*omega_val*E_loc - A_loc) \ (B_loc * V1_svd));
+        end
+
+        rel_residual = norm(Hv1 - sigma1 * U1_svd) / max(norm(Hv1), eps);
+        fprintf("omega = %.4f, Sigma = %0.4e, Residual = %.2e\n", omega_val, sigma1, rel_residual);
+
+        result_sigma(c_index, i) = sigma1;
+        result_U_svd{c_index, i} = U1_svd;
+        result_V_svd{c_index, i} = V1_svd;
+
+        % --- free large temporaries to lower peak memory on workers ---
+        M   = []; M_T = []; U_svd = []; V_svd = []; S2_svd = []; Hv1 = [];
     end
-
-    rel_residual = norm(Hv1 - sigma1 * U1_svd) / max(norm(Hv1), eps);
-    fprintf("omega = %.4f, Sigma = %0.4e, Residual = %.2e\n", omega_val, sigma1, rel_residual);
-
-    result_sigma(c_index, i) = sigma1;
-    result_U_svd{c_index, i} = U1_svd;
-    result_V_svd{c_index, i} = V1_svd;
-
-    % --- free large temporaries to lower peak memory on workers ---
-    M   = []; M_T = []; U_svd = []; V_svd = []; S2_svd = []; Hv1 = [];
-end
 
 
     elapsed = toc(tStart);
@@ -374,7 +374,7 @@ elapsed = toc;
 disp(elapsed);
 
 save('stability_results.mat', ...
-     'kz_list', 'x', 'y', ...
-     'omega', 'c_list', ...
-     'U_hat', 'V_hat', 'W_hat', ...
-     'U2_hat', 'V2_hat', 'W2_hat','result_sigma', "result_U_svd", "result_V_svd");
+    'kz_list', 'x', 'y', ...
+    'omega', 'c_list', ...
+    'U_hat', 'V_hat', 'W_hat', ...
+    'U2_hat', 'V2_hat', 'W2_hat','result_sigma', "result_U_svd", "result_V_svd");

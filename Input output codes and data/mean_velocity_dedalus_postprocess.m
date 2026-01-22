@@ -1,7 +1,7 @@
 %% =========================
 %   u_mean_zt contour (single)
 % =========================
-% rwb1 = bluewhitered; 
+% rwb1 = bluewhitered;
 fig_uMean = figure(101);
 clf(fig_uMean)
 set(fig_uMean, 'Position', [100, 100, 1000, 800]);
@@ -154,7 +154,7 @@ saveas(fig_vMean, fullfile(contourf_folder, 'v_mean_zt_contour.png'));
 %% =========================
 %   magnitude_mean contour (single)
 % =========================
-% rwb1 = bluewhitered; 
+% rwb1 = bluewhitered;
 fig_magMean = figure(103);
 clf(fig_magMean)
 set(fig_magMean, 'Position', [100, 100, 1000, 800]);

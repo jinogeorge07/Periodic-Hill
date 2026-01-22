@@ -11,10 +11,10 @@ nlevels = 40;
 
 rwb1 = bluewhitered;
 
-%% U mean nek 
+%% U mean nek
 
 fig = figure;
-set(fig, 'Position', [100, 100, 1000, 800]); 
+set(fig, 'Position', [100, 100, 1000, 800]);
 contourf(x_mean, y_mean, u_mean, nlevels);
 shading interp
 colormap(rwb1);
@@ -67,7 +67,7 @@ saveas(gcf, 'U_nek_Re190.png');
 
 %% V nek ------------------------------------------------------------------
 fig = figure;
-set(fig, 'Position', [100, 100, 1000, 800]); 
+set(fig, 'Position', [100, 100, 1000, 800]);
 
 contourf(x_mean, y_mean, v_mean, nlevels);
 shading interp

@@ -10,10 +10,10 @@ y_2D = readmatrix("y_mean_nek_Re100.csv")
 
 rwb1 = bluewhitered;
 nlevels = 40;
-%% U nek 
+%% U nek
 fig = figure;
 %set(fig, 'Position', [100, 100, 900, 750]);  % Resize figure
-set(fig, 'Position', [100, 100, 1000, 800]); 
+set(fig, 'Position', [100, 100, 1000, 800]);
 contourf(x_2D, y_2D, u_2D_mean, nlevels);
 shading interp
 colormap(rwb1);
@@ -59,7 +59,7 @@ saveas(gcf, 'U_nek_Re100.png');
 %% V nek ------------------------------------------------------------------
 fig = figure;
 %set(fig, 'Position', [100, 100, 900, 750]);  % Resize figure
-set(fig, 'Position', [100, 100, 1000, 800]); 
+set(fig, 'Position', [100, 100, 1000, 800]);
 contourf(x_2D, y_2D, v_2D_mean, nlevels);
 shading interp
 colormap(rwb1);

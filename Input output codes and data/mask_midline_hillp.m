@@ -6,7 +6,7 @@ Nx = numel(data_x); Ny = numel(data_y);
 Mmax = max(M,[],1);               % per-column max (≈ mask_const)
 Mn   = M ./ Mmax;                 % normalize to [0,1]
 
-y50_bot = nan(1,Nx); 
+y50_bot = nan(1,Nx);
 y50_top = nan(1,Nx);
 
 for ix = 1:Nx
@@ -41,7 +41,7 @@ fprintf('ℓ* bottom: RMS = %.3e (RMS/δ* = %.2f), max = %.3e (max/δ* = %.2f)\n
 %     rms_top, rms_top/mask_threshold, max_top, max_top/mask_threshold);
 
 % Optional overlay plot
-figure; 
+figure;
 plot(data_x, y_wall2a, 'r-'); hold on;
 plot(data_x, y50_bot,  'k.');
 legend('wall^-','mask midline^-');
@@ -50,7 +50,7 @@ xlabel('x'); ylabel('y'); title('Wall vs mask midline (y_{50})');
 % figure; hold on
 % plot(data_x, ell_bot, 'b-', 'DisplayName','\ell^*_bottom');
 % plot(data_x, ell_top, 'r-', 'DisplayName','\ell^*_top');
-% yline( 0.1*mask_threshold,'k--','0.1\delta^*'); 
+% yline( 0.1*mask_threshold,'k--','0.1\delta^*');
 % yline(-0.1*mask_threshold,'k--','-0.1\delta^*');
 % xlabel('x'); ylabel('\ell^*'); legend; grid on
 % title('\ell^*(x) vs x');

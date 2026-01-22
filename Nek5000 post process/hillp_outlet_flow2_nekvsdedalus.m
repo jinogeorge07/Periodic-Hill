@@ -1,6 +1,6 @@
 % Read Nek5000 output data
 clc; clear all;close all;
-folderpath = 'C:/Users/jinog/Documents/MATLAB/hillp'  
+folderpath = 'C:/Users/jinog/Documents/MATLAB/hillp'
 cd(folderpath)
 
 hillp_out = readmatrix("hilllp_refined_Re100.csv");
@@ -64,7 +64,7 @@ for xi = 1:numel(x_list)
     x_2D(xi,:) = col(take,4).';
 end
 
-rwb1 = bluewhitered; 
+rwb1 = bluewhitered;
 figure;
 mesh(x_2D,y_2D,u_2D);
 shading interp
@@ -80,9 +80,9 @@ colorbar
 hold on
 
 
-%% U nek 
+%% U nek
 fig = figure;
-set(fig, 'Position', [100, 100, 1000, 800]); 
+set(fig, 'Position', [100, 100, 1000, 800]);
 
 contourf(x_2D, y_2D, u_2D, nlevels);
 shading interp
@@ -137,7 +137,7 @@ saveas(gcf, 'U_nek.png');
 
 %% V nek ------------------------------------------------------------------
 fig = figure;
-set(fig, 'Position', [100, 100, 1000, 800]); 
+set(fig, 'Position', [100, 100, 1000, 800]);
 
 contourf(x_2D, y_2D, v_2D, nlevels);
 shading interp
@@ -210,18 +210,18 @@ v_xy1 = v_xy{12};
 % % Evaluate on Dedalus grid
 % F_u = griddata(x_flat,y_flat,u_flat,x_new,y_new);
 % F_v = griddata(x_flat,y_flat,v_flat,x_new,y_new);
-% 
+%
 % F_u = reshape(F_u,size(X));
 % F_v = reshape(F_v,size(Y));
 
-%U_nek2ded = interp2(x_2D,y_2D,u_2D,X_fluid,Y_fluid); 
+%U_nek2ded = interp2(x_2D,y_2D,u_2D,X_fluid,Y_fluid);
 
 % Create interpolants
 F_u = scatteredInterpolant(x_flat, y_flat, u_flat, 'linear',  'nearest');
 F_v = scatteredInterpolant(x_flat, y_flat, v_flat, 'linear',  'nearest');
 
 U_nek2ded = F_u(X_fluid, Y_fluid);
-    
+
 V_nek2ded = F_v(X_fluid, Y_fluid);
 
 % U_nek2ded_ts1840 = F_u(X,Y);
@@ -232,10 +232,10 @@ V_nek2ded = F_v(X_fluid, Y_fluid);
 
 % load("u_nek2ded_ts2000.mat")
 % load("v_nek2ded_ts2000.mat")
-% 
+%
 % diff_u_nek = U_nek2ded_ts1840 - U_nek2ded;
 % diff_v_nek = V_nek2ded_ts1840 - V_nek2ded;
-% 
+%
 % % see if velocity has reached steady state
 % figure;
 % plot(diff_u_nek);
@@ -258,10 +258,10 @@ V_nek2ded = F_v(X_fluid, Y_fluid);
 % c.Ticks = newTicks;
 % % Update labels to show actual values
 % c.TickLabels = arrayfun(@(x) num2str(x), newTicks, 'UniformOutput', false);
-% saveas(gcf, 'U_nek2ded_interp1.png'); 
+% saveas(gcf, 'U_nek2ded_interp1.png');
 % hold on
-% 
-% 
+%
+%
 % figure;
 % contour(X,Y,V_nek2ded,nlevels);
 % shading interp
@@ -276,14 +276,14 @@ V_nek2ded = F_v(X_fluid, Y_fluid);
 % c.Ticks = newTicks;
 % % Update labels to show actual values
 % c.TickLabels = arrayfun(@(x) num2str(x), newTicks, 'UniformOutput', false);
-% saveas(gcf, 'V_nek2ded_interp1.png'); 
+% saveas(gcf, 'V_nek2ded_interp1.png');
 % colorbar
 % hold on
 
 %% U nek to Dedalus ( curvilinear to cartesiasn grid)
 fig = figure;
 %set(fig, 'Position', [100, 100, 900, 750]);  % Resize figure
-set(fig, 'Position', [100, 100, 1000, 800]); 
+set(fig, 'Position', [100, 100, 1000, 800]);
 contourf(X, Y, U_nek2ded, nlevels);
 shading interp
 colormap(rwb1);
@@ -324,7 +324,7 @@ hold on
 %% V nek to Dedalus ( curvilinear to cartesiasn grid)
 fig = figure;
 %set(fig, 'Position', [100, 100, 900, 750]);  % Resize figure
-set(fig, 'Position', [100, 100, 1000, 800]); 
+set(fig, 'Position', [100, 100, 1000, 800]);
 contourf(X, Y, V_nek2ded, nlevels);
 shading interp
 colormap(rwb1);
@@ -368,7 +368,7 @@ hold on
 
 % 1) Valid mask using YOUR terms/orientation
 mask = isfinite(U_nek2ded) & isfinite(V_nek2ded) & ...
-       isfinite(u_xy1)    & isfinite(v_xy1);
+    isfinite(u_xy1)    & isfinite(v_xy1);
 
 % 2) Component errors (your orientation: Dedalus transposed)
 error_x = U_nek2ded - u_xy1;
@@ -386,7 +386,7 @@ err_rmse = sqrt(mean(Error.^2));
 err_mae  = mean(abs(Error));
 
 fprintf('Vector error |Δu|:  min=%.4e  mean=%.4e  RMSE=%.4e  max=%.4e\n', ...
-        err_min, err_mean, err_rmse, err_max);
+    err_min, err_mean, err_rmse, err_max);
 
 % 5) Relative errors (vs Nek magnitude)
 
@@ -415,6 +415,6 @@ end
 figure; contourf(E,30,'LineStyle','none'); colorbar
 set(gca,'YDir','normal'); axis tight equal
 title('|u_{ded} - u_{nek}| (vector error magnitude)');
-saveas(gcf, 'error.png'); 
+saveas(gcf, 'error.png');
 hold on; plot(jMax, iMax, 'ko', 'MarkerSize', 8, 'LineWidth', 1.5); hold off
 

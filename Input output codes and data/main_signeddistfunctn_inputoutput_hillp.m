@@ -6,7 +6,7 @@ clc; clear all; close all
 % %% Read dedalus data file for x y dataset for grid and velocity profile
 % read_dedalus_data;
 % %% ---------------------xxxxxxxxxxxxxxxxxxxxxxxxx--------------------------
-%folderpath = 'E:/dedalus/Wavy Wall/dedalus_local_Re75_3/snapshots_channel/mean_v_Re75.00_c1.00' 
+%folderpath = 'E:/dedalus/Wavy Wall/dedalus_local_Re75_3/snapshots_channel/mean_v_Re75.00_c1.00'
 %%folderpath = 'E:\dedalus\Wavy Wall\flexible signed distance function\opt_erf_peclet\dedalus_local_wavy_wall_Re290_a1\snapshots_channel\mean_v_Re290.00_c1.00';
 folderpath = 'E:/dedalus/Wavy Wall/flexible signed distance function/opt_erf_peclet/dedalus_local_Re190_nek5000_hill_ubulk_2D/snapshots_channel/mean_v_Re190.00_c1.00'
 
@@ -40,7 +40,7 @@ Re = 190;
 [y_cheb,DM] = chebdif(Ny,2);
 y = y_cheb*Ly;
 y = flip(y);
-x = x * (Lx / (2*pi)); 
+x = x * (Lx / (2*pi));
 
 [x_grid, y_grid] = meshgrid(x, y);
 
@@ -49,7 +49,7 @@ dy = Ly / Ny;
 %mask_threshold = 2 * 0.5 * dy; % 8 to 6 to 3
 mask_option = 6;
 
-c = 1.0; 
+c = 1.0;
 mask_const = Re/c;  % Example value for penalization stiffness: 400
 eta       = c*(1.0/Re)
 gamma = sqrt(eta / Re);                      % ε = sqrt(η / Re)
@@ -60,14 +60,14 @@ mask_threshold = 3.11346786 * gamma;         % δ* = 3.113... * ε
 [d_perp] = compute_signed_distance_mask_nek5000(x_grid, y_grid, Lx, -y0, A1);
 
 % Construct binary mask: solid = 1, interface = 0.5, fluid = 0
-    binary_mask = zeros(size(d_perp));
-    solid_region = d_perp < -mask_threshold;
-    fluid_region = d_perp >  mask_threshold;
-    interface_region = ~(solid_region | fluid_region);
+binary_mask = zeros(size(d_perp));
+solid_region = d_perp < -mask_threshold;
+fluid_region = d_perp >  mask_threshold;
+interface_region = ~(solid_region | fluid_region);
 
-    binary_mask(solid_region) = 1;
-    binary_mask(interface_region) = 0.5;
-  
+binary_mask(solid_region) = 1;
+binary_mask(interface_region) = 0.5;
+
 if mask_option == 1
     %% Normalized smooth mask using erf
     [mask_smooth,mask_smooth_solid] = normalized_mask_erf(d_perp, mask_threshold, mask_const);
@@ -81,19 +81,19 @@ elseif mask_option == 3
     [mask_smooth, mask_smooth_solid, mask_smooth_fluid, mask_smooth_interface] = normalized_mask_optimized(d_perp,Re, c, mask_const);
 
 elseif mask_option == 4
-     %% Normalized optimized smooth mask using tanh
+    %% Normalized optimized smooth mask using tanh
     [mask_smooth, mask_smooth_solid, mask_smooth_fluid] = normalized_mask_optimized_tanh(d_perp, mask_const, Re)
 elseif mask_option == 5
-     %% Normalized optimized smooth mask using optimized erf
+    %% Normalized optimized smooth mask using optimized erf
     [mask_smooth, mask_smooth_solid, mask_smooth_fluid, mask_smooth_interface] = normalized_mask_optimized3(d_perp, Re, mask_const, c, Ny, Nx, Lx, Ly)
 
 elseif mask_option == 6
-     %% Normalized optimized smooth mask using peclet number and optimized erf
-     Hav = y0;
-     Pe_max = 2.0;
-     kappa = 1.0;
+    %% Normalized optimized smooth mask using peclet number and optimized erf
+    Hav = y0;
+    Pe_max = 2.0;
+    kappa = 1.0;
     [mask_smooth, mask_smooth_combined, mask_smooth_solid, mask_smooth_fluid, mask_smooth_interface, delta_star, delta_floor, delta_opt, delta_burns, delta_pe, Pe_delta, s] = ...
-    normalized_mask_optimized_peclet(d_perp, Re, mask_const, c, Ny, Ly, Lx, Nx, Hav, Pe_max, kappa,data_x,data_y)
+        normalized_mask_optimized_peclet(d_perp, Re, mask_const, c, Ny, Ly, Lx, Nx, Hav, Pe_max, kappa,data_x,data_y)
 
 end
 
@@ -122,7 +122,7 @@ fluid_nodes = [x_fluid y_fluid];
 % x_wall2   = linspace(0, Lx, Ny);           % 352 samples in x
 % y_wall2a_dense = -y0 - A1 .* sin(2*pi/Lx .* x_wall2);
 % y_wall2b_dense =  y0 + A2 .* sin(2*pi/Lx .* x_wall2);
-% 
+%
 % y_wall2a = y_wall2a_dense;
 % y_wall2b = y_wall2b_dense;
 
@@ -172,64 +172,64 @@ xlim([0, Lx]);
 ylim([-Ly, Ly]);
 hold on
 
-  %dlmwrite('mask_smooth_erf.csv',mask_smooth); 
+%dlmwrite('mask_smooth_erf.csv',mask_smooth);
 % dlmwrite('mask_smooth_tanh.csv',mask_smooth_tanh);
-% dlmwrite('solid_nodes.csv',solid_nodes); 
+% dlmwrite('solid_nodes.csv',solid_nodes);
 
 % Output files
-  %save("mask_smooth_hillperiodic_Re100_132x108.mat", "mask_smooth");
- % save("mask_smooth_hpc_80x64.mat");
+%save("mask_smooth_hillperiodic_Re100_132x108.mat", "mask_smooth");
+% save("mask_smooth_hpc_80x64.mat");
 
 filename = ['mask_smooth_hillperiodic_Re' num2str(Re) '_' num2str(Ny) 'x' num2str(Nx) '.mat'];
 save(filename, 'mask_smooth');
 
 
-  % save("mask_smooth_fluid");
-  save("mask_smooth_solid.mat");
-  save("x_solid.mat","x_solid");
-  save("y_solid.mat","y_solid");
+% save("mask_smooth_fluid");
+save("mask_smooth_solid.mat");
+save("x_solid.mat","x_solid");
+save("y_solid.mat","y_solid");
 
 
 function [mask_smooth, mask_smooth_solid] = normalized_mask_erf(d_perp, mask_threshold, mask_const)
-    % Compute a smooth penalization mask based on signed distance
-    % - Solid: mask_const
-    % - Fluid: 0
-    % - Interface: erf transition
+% Compute a smooth penalization mask based on signed distance
+% - Solid: mask_const
+% - Fluid: 0
+% - Interface: erf transition
 
-    steepness = 1;  % Can increase for sharper interface (e.g., 2), or decrease for smoother
+steepness = 1;  % Can increase for sharper interface (e.g., 2), or decrease for smoother
 
-    mask_smooth = zeros(size(d_perp));
+mask_smooth = zeros(size(d_perp));
 
-    % Region masks
-    solid_region     = (d_perp <= -mask_threshold);
-    fluid_region     = (d_perp >  mask_threshold);
-    interface_region = ~solid_region & ~fluid_region;
-        
-    mask_smooth = 0.5 * (1 - erf(steepness * sqrt(pi) * d_perp(interface_region) / mask_threshold)) * mask_const;
-    % Output solid region mask (binary, same shape)
-    mask_smooth_solid = solid_region;
-    
+% Region masks
+solid_region     = (d_perp <= -mask_threshold);
+fluid_region     = (d_perp >  mask_threshold);
+interface_region = ~solid_region & ~fluid_region;
+
+mask_smooth = 0.5 * (1 - erf(steepness * sqrt(pi) * d_perp(interface_region) / mask_threshold)) * mask_const;
+% Output solid region mask (binary, same shape)
+mask_smooth_solid = solid_region;
+
 end
 
 
 function mask_smooth = normalized_mask_tanh(d_perp, mask_threshold, mask_const)
-    % Compute smooth mask using tanh transition (alternative to erf)
-    % - Solid: mask_const
-    % - Fluid: 0
-    % - Interface: smooth transition via tanh
+% Compute smooth mask using tanh transition (alternative to erf)
+% - Solid: mask_const
+% - Fluid: 0
+% - Interface: smooth transition via tanh
 
-    mask_smooth = zeros(size(d_perp));
+mask_smooth = zeros(size(d_perp));
 
-    % Region masks
-    solid_region     = (d_perp <= -mask_threshold);
-    fluid_region     = (d_perp >  mask_threshold);
-    interface_region = ~solid_region & ~fluid_region;
+% Region masks
+solid_region     = (d_perp <= -mask_threshold);
+fluid_region     = (d_perp >  mask_threshold);
+interface_region = ~solid_region & ~fluid_region;
 
-    % Assign values
-    mask_smooth(solid_region) = mask_const;
-    mask_smooth(fluid_region) = 0;
-    mask_smooth(interface_region) = ...
-        0.5 * (1 - tanh(d_perp(interface_region) / mask_threshold)) * mask_const;
+% Assign values
+mask_smooth(solid_region) = mask_const;
+mask_smooth(fluid_region) = 0;
+mask_smooth(interface_region) = ...
+    0.5 * (1 - tanh(d_perp(interface_region) / mask_threshold)) * mask_const;
 end
 
 function [mask_smooth, mask_smooth_solid, mask_smooth_fluid] = normalized_mask1_shifted(d_perp, mask_threshold, mask_const)
@@ -248,23 +248,23 @@ function [mask_smooth, mask_smooth_solid, mask_smooth_fluid] = normalized_mask1_
 %     mask_smooth_solid  Logical array: true inside the solid region
 %     mask_smooth_fluid  Logical array: true inside the fluid region
 
-    % 1) compute displacement length ℓ = δ / √π
-    shift = mask_threshold / sqrt(pi);
+% 1) compute displacement length ℓ = δ / √π
+shift = mask_threshold / sqrt(pi);
 
-    % 2) shift distance deeper into the solid
-    d_s = d_perp + shift;
+% 2) shift distance deeper into the solid
+d_s = d_perp + shift;
 
-    % 3) define regions on the shifted coordinate
-    solid_region = (d_s <= -mask_threshold);
-    fluid_region = (d_s >=  mask_threshold);
-    interface_region  = ~(solid_region | fluid_region);
+% 3) define regions on the shifted coordinate
+solid_region = (d_s <= -mask_threshold);
+fluid_region = (d_s >=  mask_threshold);
+interface_region  = ~(solid_region | fluid_region);
 
-    % 4) build the shifted erf mask
-    % 4) smooth mask (not piecewise anymore)
-    mask_smooth = 0.5 * (1 - erf(sqrt(pi) * d_s / mask_threshold)) * mask_const;
+% 4) build the shifted erf mask
+% 4) smooth mask (not piecewise anymore)
+mask_smooth = 0.5 * (1 - erf(sqrt(pi) * d_s / mask_threshold)) * mask_const;
 
-    mask_smooth_solid = solid_region;
-    mask_smooth_fluid = fluid_region;
-    %mask_smooth_interface = interface_region;
+mask_smooth_solid = solid_region;
+mask_smooth_fluid = fluid_region;
+%mask_smooth_interface = interface_region;
 
 end

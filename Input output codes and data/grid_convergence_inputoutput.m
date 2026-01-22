@@ -32,7 +32,7 @@ load max_Vhat_132x108.mat
 % u_diff1 = abs(max_Uhat_120x96 - max_Uhat_96x80)./max_Uhat_120x96;
 % u_diff2 = abs(max_Uhat_120x96 - max_Uhat_72x60)./max_Uhat_120x96;
 % u_diff3 = abs(max_Uhat_120x96 - max_Uhat_60x48)./max_Uhat_120x96;
-% 
+%
 % v_diff1 = abs(max_Vhat_120x96 - max_Vhat_96x80)./max_Vhat_120x96;
 % v_diff2 = abs(max_Vhat_120x96 - max_Vhat_72x60)./max_Vhat_120x96;
 % v_diff3 = abs(max_Vhat_120x96 - max_Vhat_60x48)./max_Vhat_120x96;
@@ -51,19 +51,19 @@ v_diff4 = abs(max_Vhat_132x108 - max_Vhat_60x48)./max_Vhat_132x108;
 
 figure
 plot(omega,u_diff1,'o-', 'LineWidth', 2, 'MarkerSize', 6)
-    hold on
-    plot(omega,u_diff2,'s--', 'LineWidth', 2, 'MarkerSize', 6)
-    hold on
-    plot(omega,u_diff3,'d-.', 'LineWidth', 2, 'MarkerSize', 6)
-    hold on
-    plot(omega,u_diff4,'o-', 'LineWidth', 2, 'MarkerSize', 6)
-    hold on
-    grid off;
-    %title('Resolvent Singular Values vs Phase Speed', 'FontSize', 22);
-    xlabel('Temporal frequency \omega', 'FontSize', 24);
-    ylabel('Relative error', 'FontSize', 24);
+hold on
+plot(omega,u_diff2,'s--', 'LineWidth', 2, 'MarkerSize', 6)
+hold on
+plot(omega,u_diff3,'d-.', 'LineWidth', 2, 'MarkerSize', 6)
+hold on
+plot(omega,u_diff4,'o-', 'LineWidth', 2, 'MarkerSize', 6)
+hold on
+grid off;
+%title('Resolvent Singular Values vs Phase Speed', 'FontSize', 22);
+xlabel('Temporal frequency \omega', 'FontSize', 24);
+ylabel('Relative error', 'FontSize', 24);
 
-    legend({ ...
+legend({ ...
     sprintf('(Grid5 - Grid4)/Grid5'), ...
     sprintf('(Grid4 - Grid3)/Grid5'), ...
     sprintf('(Grid3 - Grid2)/Grid5'), ...
@@ -81,22 +81,21 @@ ylim([0 1])
 saveas(gcf, 'resolvent_spectrum_deviation_U.png');
 
 
-
 figure
 plot(omega,v_diff1,'o-', 'LineWidth', 2, 'MarkerSize', 6)
-    hold on
-    plot(omega,v_diff2,'s--', 'LineWidth', 2, 'MarkerSize', 6)
-    hold on
-    plot(omega,v_diff3,'d-.', 'LineWidth', 2, 'MarkerSize', 6)
-    hold on
-    plot(omega,v_diff4,'o-', 'LineWidth', 2, 'MarkerSize', 6)
-    hold on
-    grid off;
-    %title('Resolvent Singular Values vs Phase Speed', 'FontSize', 22);
-    xlabel('Temporal frequency \omega', 'FontSize', 20);
-    ylabel('Relative error', 'FontSize', 20);
+hold on
+plot(omega,v_diff2,'s--', 'LineWidth', 2, 'MarkerSize', 6)
+hold on
+plot(omega,v_diff3,'d-.', 'LineWidth', 2, 'MarkerSize', 6)
+hold on
+plot(omega,v_diff4,'o-', 'LineWidth', 2, 'MarkerSize', 6)
+hold on
+grid off;
+%title('Resolvent Singular Values vs Phase Speed', 'FontSize', 22);
+xlabel('Temporal frequency \omega', 'FontSize', 20);
+ylabel('Relative error', 'FontSize', 20);
 
-    legend({ ...
+legend({ ...
     sprintf('(Grid1 - Grid2)/Grid1'), ...
     sprintf('(Grid1 - Grid3)/Grid1'), ...
     sprintf('(Grid1 - Grid4)/Grid1'), ...
