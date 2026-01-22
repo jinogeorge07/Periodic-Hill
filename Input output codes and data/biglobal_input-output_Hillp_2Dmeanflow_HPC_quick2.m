@@ -1,8 +1,7 @@
 %% Code by Jino George . Group of Dr. Chang Liu University of Connecticut
-%% same as linear_stability_wavy_wall_ChannelFlow_2Dmeanflow_HPC_June29_25,
-%% with targeted performance edits (1–5) only.
 
 clc; close all; clear all;
+
 % --- Choose data folder by OS (minimal edits) ---
 if isunix  % Linux/HPC
     folderpath = pwd;  % your job's scratch working directory
@@ -21,9 +20,9 @@ solver_type = 'svds';    % or 'svd'
 solver_type_const = parallel.pool.Constant(solver_type);
 
 %% Wavy wall features------------------------------------------------------
-%Ny = 120; Nx = 96; Nz = 4; % Nz to Nx for streamwise terms
-%Ny = 132; Nx = 108; Nz = 2; % Nz to Nx for streamwise terms
-Ny = 140; Nx = 112; Nz = 2; % Nz to Nx for streamwise terms
+%Ny = 48; Nx = 36; Nz = 4; % Nz to Nx for streamwise terms
+Ny = 120; Nx = 96; Nz = 4; % Nz to Nx for streamwise terms
+
 epsilon = 0.50;
 h = 1; y0 = h;
 A1 = epsilon;
@@ -46,7 +45,7 @@ y1_vals = 3*C * ( 1 + tanh( B*(abs(x_val - A) - B) ) );   % bottom wall y'(x,0)
 %% Input from Dedalus
 load data_x.mat
 load data_y.mat
-load mask_smooth_hillperiodic_Re100_140x112.mat
+load mask_smooth_hillperiodic_120x96.mat
 x_old = data_x; y_old = data_y;
 %y_old = y_old + abs(data_y(1));
 
@@ -156,17 +155,15 @@ omega = 1;
 kx_list = logspace(-4,0.48,kxn);
 kz_list = logspace(-2,1.2,kzn);
 c_list  = linspace(-1,1,c_number);
-%c_list  = linspace(0,1,c_number);
-
 
 %% Allocate once (2) sparse
-% A = spalloc(4*N,4*N, 50*4*N);                 % rough nnz guess
-% B = spalloc(4*N,3*N, 3*N);
-% C = spalloc(3*N,4*N, 3*N);
-% E = spalloc(4*N,4*N, 3*N);
-% D = spalloc(3*N,3*N, 3*N);
-% D_new = spalloc(9*N,3*N, 9*N);
-% A_init_new = spalloc(4*N,4*N, 4*N);
+A = spalloc(4*N,4*N, 50*4*N);                 % rough nnz guess
+B = spalloc(4*N,3*N, 3*N);
+C = spalloc(3*N,4*N, 3*N);
+E = spalloc(4*N,4*N, 3*N);
+D = spalloc(3*N,3*N, 3*N);
+D_new = spalloc(9*N,3*N, 9*N);
+A_init_new = spalloc(4*N,4*N, 4*N);
 
 zero_matrix = spalloc(N,N, N);
 B_tilde = [w_sqrt_inv zero_matrix zero_matrix; 
@@ -188,31 +185,31 @@ topRows    = (0:Nx-1)*Ny + 1;
 bottomRows = (1:Nx)*Ny;
 bd = [topRows, bottomRows];
 
-B_tilde(bd, :)        = 0;  B_tilde(bd+N, :) = 0;  B_tilde(bd+2*N, :) = 0;
-E(bd, :)        = 0;  E(bd+N, :) = 0;  E(bd+2*N, :) = 0;
+  B_tilde(bd, :)        = 0;  B_tilde(bd+N, :) = 0;  B_tilde(bd+2*N, :) = 0;
+  E(bd, :)        = 0;  E(bd+N, :) = 0;  E(bd+2*N, :) = 0;
 
-% % ---- Robust parallel setup: prefer threads; safe up to 4 workers ----
-% delete(gcp('nocreate'));
-% 
-% % Respect SLURM cpus-per-task; cap at 4
-% slurm_cpt = str2double(getenv('SLURM_CPUS_PER_TASK'));
-% if isnan(slurm_cpt) || isempty(slurm_cpt), slurm_cpt = 8; end
-% nworkers = max(1, min(4, slurm_cpt));
-% 
-% % Prevent nested threading inside each worker (important!)
-% setenv('OMP_NUM_THREADS', '1');
-% setenv('MKL_NUM_THREADS', '1');
-% maxNumCompThreads(nworkers);   % optional: hint MATLAB BLAS limit
-% 
-% try
-%     parpool('threads', nworkers);
-% catch
-%     warning('Thread pool unavailable; continuing in serial.');
-% end
+
+% ---- Robust parallel setup: prefer threads; safe up to 4 workers ----
+delete(gcp('nocreate'));
+
+% Respect SLURM cpus-per-task; cap at 4
+slurm_cpt = str2double(getenv('SLURM_CPUS_PER_TASK'));
+if isnan(slurm_cpt) || isempty(slurm_cpt), slurm_cpt = 8; end
+nworkers = max(1, min(4, slurm_cpt));
+
+% Prevent nested threading inside each worker (important!)
+setenv('OMP_NUM_THREADS', '1');
+setenv('MKL_NUM_THREADS', '1');
+maxNumCompThreads(nworkers);   % optional: hint MATLAB BLAS limit
+
+try
+    parpool('threads', nworkers);
+catch
+    warning('Thread pool unavailable; continuing in serial.');
+end
 
 tic
-
-for i = 5  % pick a kz index (unchanged logic)
+for i = 20  % pick a kz index (unchanged logic)
     kz = kz_list(i);
 
     % (5) cache per-i pieces
@@ -267,6 +264,17 @@ for i = 5  % pick a kz index (unchanged logic)
     K_block = blkdiag(K, K, K, sparse(N,N));
     A = A - K_block;
 
+%     % Weighting / tilde blocks (unchanged)
+%     C_tilde = blkdiag(w.^0.5, w.^0.5, w.^0.5) * C;
+%     D = blkdiag(w.^0.5, w.^0.5, w.^0.5);
+%     B_tilde = B / D;
+
+%     % keep sparse
+%     A = sparse(A);
+%     B_tilde = sparse(B_tilde);
+%     C_tilde = sparse(C_tilde);
+%     E = sparse(E);
+
     % cache per i (5)
     A_s = A; E_s = E; B_s = B_tilde; C_s = C_tilde;
     solver = lower(solver_type);
@@ -289,7 +297,7 @@ for i = 5  % pick a kz index (unchanged logic)
     B_c = parallel.pool.Constant(B_s);
     C_c = parallel.pool.Constant(C_s);
 
-    for c_index = 1:c_number
+    parfor c_index = 1:c_number
     sigma1 = NaN; Hv1 = [];
 
     % pull shared matrices from Constants (no worker copies)
@@ -332,7 +340,7 @@ for i = 5  % pick a kz index (unchanged logic)
 
     % --- free large temporaries to lower peak memory on workers ---
     M   = []; M_T = []; U_svd = []; V_svd = []; S2_svd = []; Hv1 = [];
-    end
+end
 
 
     elapsed = toc(tStart);
