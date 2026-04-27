@@ -1,95 +1,474 @@
-% Amplification factor and growth
+% Input Output Post Processing for 2 way coupled flow
 clc; clear all; close all;
 
 folderpath = './'
 
-Re = [50,100,190];
+%% Periodic hill and Domain Properties
+Ny = 132; Nx = 108; Nz = 2; % Nz to Nx for streamwise terms
+N = Ny*Nx;
+epsilon = 0.50;
+%epsilon = 0.25;
+h = 1;
+y0 = h;
+A1 = epsilon;
+A2 = epsilon;
+%Lx = 0.6 * pi;
+Lx = 9.0;
+Ly = 1.0 + 1.0*epsilon;
+Re = 190
+x_val = linspace(0, Lx, Nx);  % replaces fourdif x values for plotting only
+A  = 4.5;
+B  = 3.5;
+C  = 1/6;
 
-c_number = 12;
-compute_deviation = "false"
-%% Wavenumbers/frequency
-kxn = 1; kzn = 36; kx = 1;
-omega = 1;
-kx_list = logspace(-4,0.48,kxn);
-kz_list = logspace(-2,1.2,kzn);
-c_list  = linspace(-1,1,c_number);
-omega = -c_list * kx;
+% figure;
+% plot(x_val,y1_vals)
+% hold on
+% quiver = "OFF";
+kz_idx = 20;
+load('stability_results_Re190_132x108_kz20.mat');   % expects x,y,U_hat,V_hat,W_hat,kz_list,c_list,omega
 
-for i = 1:length(Re)
+show_velocity = "true";
+c_number = 12; % 96 % MULTIPLE OF NUMBER OF CORES
+% ---- choose the kz index you ran (adjust if needed) ----
+% <--- set to the i you used in the run
+%kz = kz_list(kz_idx);
+kz = 0.55;
 
-    filename = ['sigma_list_Re' num2str(Re(i)) '_kz5.mat'];
-    data5 = load(filename);
-    filename = ['sigma_list_Re' num2str(Re(i)) '_kz10.mat'];
-    data10 = load(filename);
-    filename = ['sigma_list_Re' num2str(Re(i)) '_kz20.mat'];
-    data20 = load(filename);
-    filename = ['sigma_list_Re' num2str(Re(i)) '_kz28.mat'];
-    data28 = load(filename);
-    filename = ['sigma_list_Re' num2str(Re(i)) '_kz32.mat'];
-    data32 = load(filename);
+load data_x.mat
+load data_y.mat
+load u_mean_zt.mat               % fine-grid mean U from Dedalus
+load x_solid.mat
+load y_solid.mat
+filename_mask = ['mask_smooth_hillperiodic_Re' num2str(Re) '_' num2str(Ny) 'x' num2str(Nx) '.mat'];
+load(filename_mask)
+rwb1 = bluewhitered
+%load mask_smooth_hillperiodic_Re100_120x96.mat
 
-    writematrix(data5.sigma_list,['sigma_list_Re' num2str(Re(i)) '_kz5.csv'])
-    writematrix(data10.sigma_list,['sigma_list_Re' num2str(Re(i)) '_kz10.csv'])
-    writematrix(data20.sigma_list,['sigma_list_Re' num2str(Re(i)) '_kz20.csv'])
-    writematrix(data28.sigma_list,['sigma_list_Re' num2str(Re(i)) '_kz28.csv'])
-    writematrix(data32.sigma_list,['sigma_list_Re' num2str(Re(i)) '_kz32.csv'])
+solid_mask = (mask_smooth == Re);   % <<< IMPORTANT: > 0, not == 0
+data_y = data_y + 1.5
+y1_vals = 3*C * ( 1 + tanh( B*(abs(data_x - A) - B) ) );   % bottom wall y'(x,0)
+y1_vals = y1_vals - 1.5;
 
-    sigma_list_5 = data5.sigma_list;
-    sigma_list_10 = data10.sigma_list;
-    sigma_list_20 = data20.sigma_list;
-    sigma_list_28 = data28.sigma_list;
-    sigma_list_32 = data32.sigma_list;
+[X_old,Y_old] = meshgrid(data_x, data_y);
+[Xc, Yc]      = meshgrid(x, y);  % 'x','y' came from stability_results.mat
 
-    sigma2_list_5  = sigma_list_5.^2;
-    sigma2_list_10 = sigma_list_10.^2;
-    sigma2_list_20 = sigma_list_20.^2;
-    sigma2_list_28 = sigma_list_28.^2;
-    sigma2_list_32 = sigma_list_32.^2;
+Umean_coarse  = interp2(X_old, Y_old, u_mean_zt, Xc, Yc, 'linear');  % note transpose
+[dUdx_coarse, dUdy_coarse] = gradient(Umean_coarse, x, y);
 
-    % Amplification gain------------------------------------------------------
+% (optional) clear big vars:
+clear u_mean_zt X_old Y_old Xc Yc
 
-    % Set axis tick label font size
-    set(gca, 'FontSize', 20);
-    lgd = legend;
-    set(lgd, 'Color', 'none');   % remove background
-    set(lgd, 'Box', 'off');      % optional: remove border
-    xlim([-1 1])
-    ylim([0 200])
+% grid for quiver (same grid you used for pcolor/contour)
+[Xg, Yg] = meshgrid(x, y);
 
-    figure;
-    plot(omega, sigma_list_5, 'o-', 'LineWidth', 2, 'MarkerSize', 6); hold on;
-    plot(omega, sigma_list_10, 's--', 'LineWidth', 2, 'MarkerSize', 6);
-    plot(omega, sigma_list_20, 'd-.', 'LineWidth', 2, 'MarkerSize', 6);
-    plot(omega, sigma_list_28, 'd-.', 'LineWidth', 2, 'MarkerSize', 6);
-    plot(omega, sigma_list_32, 'p-.', 'LineWidth', 2, 'MarkerSize', 6);
+% thin the arrows a bit so the plot stays readable
+qstep = max(1, round(min(numel(x), numel(y))/40));   % ~25–35 arrows each way
+Xs = Xg(1:qstep:end, 1:qstep:end);
+Ys = Yg(1:qstep:end, 1:qstep:end);
 
-    grid off;
-    %title('Resolvent Singular Values vs Frequency \omega', 'FontSize', 22);
-    xlabel('Temporal frequency \omega', 'FontSize', 20);
-    ylabel('Singular value \sigma', 'FontSize', 20);
-
-    legend({ ...
-        sprintf('kz = %.2f', kz_list(5)), ...
-        sprintf('kz = %.2f', kz_list(10)), ...
-        sprintf('kz = %.2f', kz_list(20)), ...
-        sprintf('kz = %.2f', kz_list(28)), ...
-        sprintf('kz = %.2f', kz_list(32))}, ...
-        'FontSize', 18, ...
-        'Orientation','horizontal', ...
-        'NumColumns', 2, ...   % <-- first row: 3 items
-        'Location','northwest');  % <-- inside, top-left
+%guards for walls & colormap
+haveWalls = exist('x_val','var') && exist('y1_vals','var') && exist('y2_vals','var');
+hasBWR   = exist('bluewhitered','file');
 
 
-    % Set axis tick label font size
-    set(gca, 'FontSize', 20);
-    lgd = legend;
-    set(lgd, 'Color', 'none');   % remove background
-    set(lgd, 'Box', 'off');      % optional: remove border
-    xlim([-1 1])
-    ylim([0 200])
+% ---- layout + tick style (same idea as working case) ----
+BIG_TICKS = 40;                         % axis tick fontsize
+NXT       = 4;                          % number of major x ticks
+NYT       = 4;                          % number of major y ticks
 
-    %saveas(gcf, 'resolvent_spectrum_vs_omega.png');
-    filename = ['resolvent_spectrum_vs_omega_' num2str(Re(i)) '.png'];
-    saveas(gcf, filename);
+FIG_POS   = [100 100 1350 1000];        % figure size in pixels
+AX_POS  = [0.12 0.28 0.78 0.58];
+CB_POS = [0.18 0.20 0.64 0.04];
+Lx        = 9.0;                        % for last x–tick
 
+if show_velocity == "true"
+
+    idx_list = [1,4,6];
+
+    Umax_common = 0;
+    for ii = idx_list
+        tmp = U_hat(:,:,ii);
+        tmp(solid_mask) = NaN;
+        Umax_common = max(Umax_common, max(abs(tmp(:)), [], 'omitnan'));
+    end
+    Vmax_common = 0;
+    for ii = idx_list
+        tmp = V_hat(:,:,ii);
+        tmp(solid_mask) = NaN;
+        Vmax_common = max(Vmax_common, max(abs(tmp(:)), [], 'omitnan'));
+    end
+
+    Wmax_common = 0;
+    for ii = idx_list
+        tmp = W_hat(:,:,ii);
+        tmp(solid_mask) = NaN;
+        Wmax_common = max(Wmax_common, max(abs(tmp(:)), [], 'omitnan'));
+    end
+
+    for i = idx_list
+
+        %     % ---------- U: contour Response mode ----------
+        fU1 = figure('Visible','on','Position',[100 100 1000 800]);
+
+        % Copy U and blank out the solid region
+        U_plot = U_hat(:,:,i);
+        U_plot(solid_mask) = NaN;      % hide solid, keep fluid only
+        contourf(x, y, U_plot, 40, 'LineWidth', 0.5);
+        hold on
+        shading interp
+        colormap(bluewhitered);                     % ensures the center color is white
+        %contour(x, y, crit_contour, [0 0], 'k', 'LineWidth', 2);   % critical layer
+        %caxis([-max(abs(U_plot(:))) max(abs(U_plot(:)))]);  % ensures 0 is centered
+        caxis([-Umax_common Umax_common]);
+        hold on
+
+        writematrix(U_plot, fullfile(sprintf('U_response_c%02d_kz%g.csv', i, kz)));
+        % fill solid patch
+        fill_patch_hillp;
+        plot(data_x, y1_vals, 'k', 'LineWidth', 2);   % thick black curve
+        hold on
+
+        hillp_tick_function;
+        daspect([1 1 1]);
+        %saveas(fU1, fullfile(sprintf('U_response_c%02d_kz%g_Re%d.png', i, kz,Re)));
+        exportgraphics(fU1, sprintf('U_response_c%02d_kz%g_Re%d.png', i, kz,Re), ...
+        'Resolution', 600, 'BackgroundColor', 'white');
+        close(fU1);
+
+        %     % ---------- U: contour forcing mode ----------
+        %     fU3 = figure('Visible','off','Position',[100 100 1000 800]);
+        %     %contourf(x, y, U2_hat(:,:,i), 30, 'LineWidth', 1/2);
+        %     % Copy U and blank out the solid region
+        %     U2_plot = U2_hat(:,:,i);
+        %     U2_plot(solid_mask) = NaN;      % hide solid, keep fluid only
+        %     contourf(x, y, U2_plot, 40, 'LineWidth', 0.5);
+        %     shading interp
+        %     colormap(bluewhitered);                     % ensures the center color is white
+        %     caxis([-max(abs(U2_plot(:))) max(abs(U2_plot(:)))]);  % ensures 0 is centered
+        %     hold on
+        %
+        %     % fill solid patch
+        %     fill_patch_hillp;
+        %     plot(data_x, y1_vals, 'k', 'LineWidth', 2);   % thick black curve
+        %     hold on
+        %
+        %     hillp_tick_function;
+        %     saveas(fU3, fullfile(sprintf('X_forcing_c%02d_kz%g.png', i, kz)));
+        %     close(fU3);
+
+        % ---------- V: contour response mode----------
+        fV1 = figure('Visible','on','Position',[100 100 1000 800]);
+        %contourf(x, y, V_hat(:,:,i), 30, 'LineWidth', 1/2);
+
+        %% Copy U and blank out the solid region
+        % Copy U and blank out the solid region
+        V_plot = V_hat(:,:,i);
+        V_plot(solid_mask) = NaN;      % hide solid, keep fluid only
+        contourf(x, y, V_plot, 40, 'LineWidth', 0.5);
+        shading interp
+        colormap(bluewhitered);                     % ensures the center color is white
+        %hold on
+        %contour(x, y, crit_contour, [0 0], 'k', 'LineWidth', 2);   % critical layer
+        %caxis([-max(abs(V_plot(:))) max(abs(V_plot(:)))]);  % ensures 0 is centered
+        caxis([-Vmax_common Vmax_common]);
+        hold on
+
+        writematrix(V_plot, fullfile(sprintf('V_response_c%02d_kz%g.csv', i, kz)));
+        % fill solid patch
+        fill_patch_hillp;
+        plot(data_x, y1_vals, 'k', 'LineWidth', 2);   % thick black curve
+        hold on
+
+        hillp_tick_function;
+        daspect([1 1 1]);
+        %saveas(fV1, fullfile(sprintf('V_response_c%02d_kz%g_Re%d.png', i, kz,Re)));
+        exportgraphics(fV1, sprintf('V_response_c%02d_kz%g_Re%d.png', i, kz,Re), ...
+        'Resolution', 600, 'BackgroundColor', 'white');
+        close(fV1);
+
+        %     % ---------- V: contour forcing mode----------
+        %     fV3 = figure('Visible','off','Position',[100 100 1000 800]);
+        %     %contourf(x, y, V2_hat(:,:,i), 30, 'LineWidth', 1/2);
+        %
+        %     %% Copy U and blank out the solid region
+        %     V2_plot = V2_hat(:,:,i);
+        %     V2_plot(solid_mask) = NaN;      % hide solid, keep fluid only
+        %     contourf(x, y, V2_plot, 40, 'LineWidth', 0.5);
+        %     shading interp
+        %     colormap(bluewhitered);                     % ensures the center color is white
+        %     caxis([-max(abs(V2_plot(:))) max(abs(V2_plot(:)))]);  % ensures 0 is centered
+        %     hold on
+        %
+        %     % fill solid patch
+        %     fill_patch_hillp;
+        %     plot(data_x, y1_vals, 'k', 'LineWidth', 2);   % thick black curve
+        %     hold on
+        %
+        %     hillp_tick_function;
+        %     saveas(fV3, fullfile(sprintf('Y_forcing_c%02d_kz%g.png', i, kz)));
+        %     close(fV3);
+
+
+        %     % ---------- W: contour Response mode ----------
+        %     fW1 = figure('Visible','off','Position',[100 100 1000 800]);
+        %     %contourf(x, y, W_hat(:,:,i), 30, 'LineWidth', 1/2);
+        %
+        %     %% Copy U and blank out the solid region
+        %     W_plot = W_hat(:,:,i);
+        %     W_plot(solid_mask) = NaN;      % hide solid, keep fluid only
+        %     contourf(x, y, W_plot, 40, 'LineWidth', 1/2);
+        %     shading interp
+        %     colormap(bluewhitered);                     % ensures the center color is white
+        %     caxis([-max(abs(W_plot(:))) max(abs(W_plot(:)))]);  % ensures 0 is centered
+        %     hold on
+        %
+        %     % fill solid patch
+        %     fill_patch_hillp;
+        %     plot(data_x, y1_vals, 'k', 'LineWidth', 2);   % thick black curve
+        %     hold on
+        %
+        %     hillp_tick_function;
+        %     saveas(fW1, fullfile(snapdir, sprintf('W_response_c%02d_kz%g.png', i, kz)));
+        %     %exportgraphics(gcf, fullfile(snapdir, sprintf('W_response_c%02d_kz%g.png', i, kz)), 'Resolution', 300);
+        %     close(fW1);
+
+        %     % ---------- Z: contour Forcing mode ----------
+        %     fW3 = figure('Visible','off','Position',[100 100 1000 800]);
+        %     %contourf(x, y, W2_hat(:,:,i), 30, 'LineWidth', 1/2);
+        %     %% Copy U and blank out the solid region
+        %     W2_plot = W2_hat(:,:,i);
+        %     W2_plot(solid_mask) = NaN;      % hide solid, keep fluid only
+        %     contourf(x, y, W2_plot, 40, 'LineWidth', 1/2);
+        %     shading interp
+        %     colormap(bluewhitered);                     % ensures the center color is white
+        %     caxis([-max(abs(W2_plot(:))) max(abs(W2_plot(:)))]);  % ensures 0 is centered
+        %     hold on
+        %
+        %     % fill solid patch
+        %     fill_patch_hillp;
+        %     plot(data_x, y1_vals, 'k', 'LineWidth', 2);   % thick black curve
+        %     hold on
+        %
+        %     hillp_tick_function;
+        %     saveas(fW3, fullfile(sprintf('Z_forcing_c%02d_kz%g.png', i, kz)));
+        %     %exportgraphics(gcf, fullfile(snapdir, sprintf('Z_forcing_c%02d_kz%g.png', i, kz)), 'Resolution', 300);
+        %     close(fW3);
+
+    end
+
+end
+
+sigma_list = result_sigma(:,kz_idx)
+filename = ['sigma_list_Re' num2str(Re) '_kz' num2str(kz_idx) '.mat'];
+save(filename, 'sigma_list');
+
+
+%% Periodic hill and Domain Properties
+Ny = 168; Nx = 120; Nz = 2; % Nz to Nx for streamwise terms
+N = Ny*Nx;
+epsilon = 0.50;
+%epsilon = 0.25;
+h = 1;
+y0 = h;
+A1 = epsilon;
+A2 = epsilon;
+Lx = 9.0;
+Ly = 1.0 + 1.0*epsilon;
+Re = 300
+x_val = linspace(0, Lx, Nx);  % replaces fourdif x values for plotting only
+A  = 4.5;
+B  = 3.5;
+C  = 1/6;
+
+% Read the 3 files directly and stack the already-saved fields
+S1 = load('stability_results_Re300_168x120_kz20_c1.mat');
+S4 = load('stability_results_Re300_168x120_kz20_c4.mat');
+S6 = load('stability_results_Re300_168x120_kz20_c6.mat');
+
+% take x, y, kz info from one file
+x  = S1.x;
+y  = S1.y;
+kz_idx = 20;
+c_index = [1 4 6];
+nc = numel(c_index);
+kz = 0.55;
+% pick only the desired c-slice from each file
+U_hat  = cat(3, S1.U_hat(:,:,1),  S4.U_hat(:,:,4),  S6.U_hat(:,:,6));
+V_hat  = cat(3, S1.V_hat(:,:,1),  S4.V_hat(:,:,4),  S6.V_hat(:,:,6));
+W_hat  = cat(3, S1.W_hat(:,:,1),  S4.W_hat(:,:,4),  S6.W_hat(:,:,6));
+
+U2_hat = cat(3, S1.U2_hat(:,:,1), S4.U2_hat(:,:,4), S6.U2_hat(:,:,6));
+V2_hat = cat(3, S1.V2_hat(:,:,1), S4.V2_hat(:,:,4), S6.V2_hat(:,:,6));
+W2_hat = cat(3, S1.W2_hat(:,:,1), S4.W2_hat(:,:,4), S6.W2_hat(:,:,6));
+
+% optional: sigma from each file
+sigma_list = [S1.result_sigma(1,kz_idx), S4.result_sigma(1,kz_idx), S6.result_sigma(1,kz_idx)];
+
+show_velocity = "true";
+compute_singular_value = "false"
+mesh_independence = "false"
+c_number = 12; % 96 % MULTIPLE OF NUMBER OF CORES
+
+% ---- choose the kz index you ran (adjust if needed) ----
+                    % <--- set to the i you used in the run
+
+load data_x_Re300.mat
+load data_y_Re300.mat
+load u_mean_zt_Re300.mat               % fine-grid mean U from Dedalus
+load x_solid_Re300.mat
+load y_solid_Re300.mat
+filename_mask = ['mask_smooth_hillperiodic_Re' num2str(Re) '_' num2str(Ny) 'x' num2str(Nx) '.mat'];
+load(filename_mask)
+%load mask_smooth_hillperiodic_Re100_120x96.mat
+
+solid_mask = (mask_smooth == 300);   % <<< IMPORTANT: > 0, not == 0
+data_y = data_y + 1.5
+y1_vals = 3*C * ( 1 + tanh( B*(abs(data_x - A) - B) ) );   % bottom wall y'(x,0)
+y1_vals = y1_vals - 1.5;
+
+[X_old,Y_old] = meshgrid(data_x, data_y);
+[Xc, Yc]      = meshgrid(x, y);  % 'x','y' came from stability_results.mat
+
+Umean_coarse  = interp2(X_old, Y_old, u_mean_zt, Xc, Yc, 'linear');  % note transpose
+[dUdx_coarse, dUdy_coarse] = gradient(Umean_coarse, x, y);
+
+% (optional) clear big vars:
+clear u_mean_zt X_old Y_old Xc Yc
+
+
+% % make subfolder
+% snapdir = fullfile(folderpath, sprintf('snapshots_hillp_Re%d_kz%0.4g_multiC',Re, kz));
+% if ~exist(snapdir,'dir'), mkdir(snapdir); end
+
+
+% grid for quiver (same grid you used for pcolor/contour)
+[Xg, Yg] = meshgrid(x, y);
+
+% thin the arrows a bit so the plot stays readable
+qstep = max(1, round(min(numel(x), numel(y))/40));   % ~25–35 arrows each way
+Xs = Xg(1:qstep:end, 1:qstep:end);
+Ys = Yg(1:qstep:end, 1:qstep:end);
+
+%guards for walls & colormap
+haveWalls = exist('x_val','var') && exist('y1_vals','var') && exist('y2_vals','var');
+hasBWR   = exist('bluewhitered','file');
+
+% ---- layout + tick style (same idea as working case) ----
+BIG_TICKS = 40;                         % axis tick fontsize
+NXT       = 4;                          % number of major x ticks
+NYT       = 4;                          % number of major y ticks
+
+
+FIG_POS = [100 100 1350 1000];
+AX_POS  = [0.12 0.28 0.78 0.58];
+CB_POS = [0.18 0.20 0.64 0.04];
+Lx        = 9.0;                        % for last x–tick
+
+
+if show_velocity == "true"
+
+    idx_list = 1:nc;
+
+    Umax_common  = 0; U2max_common = 0;
+    Vmax_common  = 0; V2max_common = 0;
+    Wmax_common  = 0; W2max_common = 0;
+
+    for ii = idx_list
+        tmp = U_hat(:,:,ii);   tmp(solid_mask) = NaN;
+        Umax_common = max(Umax_common, max(abs(tmp(:)), [], 'omitnan'));
+
+        tmp = U2_hat(:,:,ii);  tmp(solid_mask) = NaN;
+        U2max_common = max(U2max_common, max(abs(tmp(:)), [], 'omitnan'));
+
+        tmp = V_hat(:,:,ii);   tmp(solid_mask) = NaN;
+        Vmax_common = max(Vmax_common, max(abs(tmp(:)), [], 'omitnan'));
+
+        tmp = V2_hat(:,:,ii);  tmp(solid_mask) = NaN;
+        V2max_common = max(V2max_common, max(abs(tmp(:)), [], 'omitnan'));
+
+        tmp = W_hat(:,:,ii);   tmp(solid_mask) = NaN;
+        Wmax_common = max(Wmax_common, max(abs(tmp(:)), [], 'omitnan'));
+
+        tmp = W2_hat(:,:,ii);  tmp(solid_mask) = NaN;
+        W2max_common = max(W2max_common, max(abs(tmp(:)), [], 'omitnan'));
+    end
+
+    %% ========================================================
+    %  LOOP OVER ALL c CASES AND EXPORT PLOTS
+    % =========================================================
+    for i = 1:nc
+
+        c_label = c_index(i);
+
+        % ---------- U response ----------
+        fU1 = figure('Visible','off','Position',[100 100 1000 800]);
+        U_plot = U_hat(:,:,i);
+        U_plot(solid_mask) = NaN;
+
+        contourf(x, y, U_plot, 40, 'LineWidth', 0.5);
+        hold on
+        shading interp
+        colormap(bluewhitered);
+        caxis([-Umax_common Umax_common]);
+
+        fill_patch_hillp;
+        plot(data_x, y1_vals, 'k', 'LineWidth', 2);
+        hold on
+
+        hillp_tick_function;
+        daspect([1 1 1])
+
+        exportgraphics(fU1, fullfile(sprintf('U_response_Re%d_c%02d_kz%g.png',Re, c_label, kz)), ...
+            'Resolution', 600, 'BackgroundColor', 'white');
+        close(fU1);
+
+%         % ---------- X forcing ----------
+%         fU3 = figure('Visible','off','Position',[100 100 1000 800]);
+%         U2_plot = U2_hat(:,:,i);
+%         U2_plot(solid_mask) = NaN;
+% 
+%         contourf(x, y, U2_plot, 40, 'LineWidth', 0.5);
+%         hold on
+%         shading interp
+%         colormap(bluewhitered);
+%         caxis([-U2max_common U2max_common]);
+% 
+%         %writematrix(U2_plot, fullfile(snapdir, sprintf('X_forcing_c%02d_kz%g.csv', c_label, kz)));
+% 
+%         fill_patch_hillp;
+%         plot(data_x, y1_vals, 'k', 'LineWidth', 2);
+%         hold on
+% 
+%         hillp_tick_function;
+%         daspect([1 1 1])
+% 
+%         exportgraphics(fU3, fullfile(snapdir, sprintf('X_forcing_Re%d_c%02d_kz%g.png',Re, c_label, kz)), ...
+%             'Resolution', 600, 'BackgroundColor', 'white');
+%         close(fU3);
+
+        % ---------- V response ----------
+        fV1 = figure('Visible','off','Position',[100 100 1000 800]);
+        V_plot = V_hat(:,:,i);
+        V_plot(solid_mask) = NaN;
+
+        contourf(x, y, V_plot, 40, 'LineWidth', 0.5);
+        hold on
+        shading interp
+        colormap(bluewhitered);
+        caxis([-Vmax_common Vmax_common]);
+
+        fill_patch_hillp;
+        plot(data_x, y1_vals, 'k', 'LineWidth', 2);
+        hold on
+
+        hillp_tick_function;
+        daspect([1 1 1])
+
+        exportgraphics(fV1, fullfile(sprintf('V_response_Re%d_c%02d_kz%g.png',Re, c_label, kz)), ...
+            'Resolution', 600, 'BackgroundColor', 'white');
+        close(fV1);
+
+
+    end
 end

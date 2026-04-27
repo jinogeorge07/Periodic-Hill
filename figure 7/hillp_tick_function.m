@@ -11,7 +11,7 @@ xlabel('x','FontSize',32);
 ylabel('y','FontSize',32);
 
 % ----- colorbar with big labels -----
-c = colorbar;
+c = colorbar('southoutside');
 c.Ticks      = linspace(c.Limits(1), c.Limits(2), 6);
 c.TickLabels = compose('%.2f', c.Ticks);
 c.FontSize   = BIG_TICKS;
@@ -28,6 +28,10 @@ ax.XAxis.TickDirection = 'out';
 ax.YAxis.TickDirection = 'out';
 ax.XAxis.Exponent   = 0;
 ax.YAxis.Exponent   = 0;
+
+% next 2 lines are for xlabel position between plot and colorbar
+ax.XLabel.Units = 'normalized';
+ax.XLabel.Position(2) = -0.01;   % adjust if needed
 
 % X ticks: from xmin to Lx, NXT values
 xmin    = min(x(:));
@@ -47,6 +51,7 @@ yt = ax.YTick;
 ax.YTickLabel = arrayfun(@(v) sprintf('%d', v + 1.5), yt, ...
     'UniformOutput', false);
 
+daspect([1 1 1]);
 % shrink and position axes + colorbar so labels fit in frame
 set(ax, 'Units','normalized', 'Position', AX_POS);
 set(c,  'Units','normalized', 'Position', CB_POS);

@@ -11,7 +11,7 @@ if hasBWR, colormap(bluewhitered); end
     ylabel('y','FontSize',32);
 
     % ----- colorbar with big labels -----
-    c = colorbar;
+    c = colorbar('southoutside');
     c.Ticks      = linspace(c.Limits(1), c.Limits(2), 6);
     c.TickLabels = compose('%.2f', c.Ticks);
     c.FontSize   = BIG_TICKS;
@@ -28,6 +28,10 @@ if hasBWR, colormap(bluewhitered); end
     ax.YAxis.TickDirection = 'out';
     ax.XAxis.Exponent   = 0;
     ax.YAxis.Exponent   = 0;
+
+    % next 2 lines are for xlabel position between plot and colorbar
+    ax.XLabel.Units = 'normalized';
+    ax.XLabel.Position(2) = -0.01;   % adjust if needed
 
     % X ticks: from xmin to Lx, NXT values
     xmin    = min(x(:));

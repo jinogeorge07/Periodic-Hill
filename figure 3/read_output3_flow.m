@@ -87,7 +87,7 @@ end
 ax.YTick = newY;
 ax.YTickLabel = arrayfun(@(y) sprintf('%d', y + 1.5), newY, 'UniformOutput', false);
 % ===========================================================
-
+daspect([1 1 1]);
 saveas(fig_uMean, fullfile('u_mean_zt_contour.png'));
 
 
@@ -163,5 +163,5 @@ end
 ax.YTick = newY;
 ax.YTickLabel = arrayfun(@(y) sprintf('%d', y + 1.5), newY, 'UniformOutput', false);
 % ===========================================================
-
+daspect([1 1 1]);
 saveas(fig_vMean, fullfile('v_mean_zt_contour.png'));

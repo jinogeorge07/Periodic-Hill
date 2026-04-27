@@ -85,13 +85,35 @@ BIG_TICKS = 40;                         % axis tick fontsize
 NXT       = 4;                          % number of major x ticks
 NYT       = 4;                          % number of major y ticks
 
-FIG_POS   = [100 100 1350 1000];        % figure size in pixels
-AX_POS = [0.18 0.26 0.55 0.62]; % axes position [left bottom width height]
-CB_POS    = [0.78 0.16 0.05 0.78];      % colorbar position
+FIG_POS = [100 100 1350 1000];
+AX_POS  = [0.12 0.28 0.78 0.58];
+CB_POS = [0.18 0.20 0.64 0.04];
 Lx        = 9.0;                        % for last x–tick
 
 if show_velocity == "true"
 
+    idx_list = [7,9,12];
+
+    Umax_common = 0;
+    for ii = idx_list
+        tmp = U_hat(:,:,ii);
+        tmp(solid_mask) = NaN;
+        Umax_common = max(Umax_common, max(abs(tmp(:)), [], 'omitnan'));
+    end
+    Vmax_common = 0;
+    for ii = idx_list
+        tmp = V_hat(:,:,ii);
+        tmp(solid_mask) = NaN;
+        Vmax_common = max(Vmax_common, max(abs(tmp(:)), [], 'omitnan'));
+    end
+
+    Wmax_common = 0;
+    for ii = idx_list
+        tmp = W_hat(:,:,ii);
+        tmp(solid_mask) = NaN;
+        Wmax_common = max(Wmax_common, max(abs(tmp(:)), [], 'omitnan'));
+    end
+    
     for i = [7,9,12]
 
         crit_contour = Umean_coarse - c_list(i);   % Ny x Nx
@@ -106,20 +128,22 @@ if show_velocity == "true"
         shading interp
         colormap(bluewhitered);                     % ensures the center color is white
         %contour(x, y, crit_contour, [0 0], 'k', 'LineWidth', 2);   % critical layer
-        caxis([-max(abs(U_plot(:))) max(abs(U_plot(:)))]);  % ensures 0 is centered
+        %caxis([-max(abs(U_plot(:))) max(abs(U_plot(:)))]);  % ensures 0 is centered
+        caxis([-Umax_common Umax_common]);
         hold on
 
         writematrix(U_plot, fullfile(sprintf('U_response_c%02d_kz%g.csv', i, kz)));
-        % fill solid patch
+        % fill solid patch function 
         fill_patch_hillp;
         plot(data_x, y1_vals, 'k', 'LineWidth', 2);   % thick black curve
         hold on
 
         hillp_tick_function;
-
-        saveas(fU1, fullfile(sprintf('U_response_c%02d_kz%g.png', i, kz)));
+        daspect([1 1 1]);
+        %saveas(fU1, fullfile(sprintf('U_response_c%02d_kz%g.png', i, kz)));
         % or exportgraphics if you prefer
-        % exportgraphics(fU1, fullfile(snapdir, ...), 'Resolution', 300);
+        exportgraphics(fU1, sprintf('U_response_c%02d_kz%g.png', i, kz), ...
+        'Resolution', 600, 'BackgroundColor', 'white');
 
         close(fU1);
 
@@ -159,7 +183,8 @@ if show_velocity == "true"
         colormap(bluewhitered);                     % ensures the center color is white
         %hold on
         %contour(x, y, crit_contour, [0 0], 'k', 'LineWidth', 2);   % critical layer
-        caxis([-max(abs(V_plot(:))) max(abs(V_plot(:)))]);  % ensures 0 is centered
+        %caxis([-max(abs(V_plot(:))) max(abs(V_plot(:)))]);  % ensures 0 is centered
+        caxis([-Vmax_common Vmax_common]);
         hold on
 
         writematrix(V_plot, fullfile(sprintf('V_response_c%02d_kz%g.csv', i, kz)));
@@ -169,8 +194,10 @@ if show_velocity == "true"
         hold on
 
         hillp_tick_function;
-        saveas(fV1, fullfile(sprintf('V_response_c%02d_kz%g.png', i, kz)));
-
+        daspect([1 1 1]);
+        %saveas(fV1, fullfile(sprintf('V_response_c%02d_kz%g.png', i, kz)));
+        exportgraphics(fV1, sprintf('V_response_c%02d_kz%g.png', i, kz), ...
+        'Resolution', 600, 'BackgroundColor', 'white');
         % exportgraphics(gcf, fullfile(snapdir, sprintf('V_response_c%02d_kz%g.png', i, kz)), 'Resolution', 300);
         close(fV1);
 
@@ -209,7 +236,8 @@ if show_velocity == "true"
         contourf(x, y, W_plot, 40, 'LineWidth', 1/2);
         shading interp
         colormap(bluewhitered);                     % ensures the center color is white
-        caxis([-max(abs(W_plot(:))) max(abs(W_plot(:)))]);  % ensures 0 is centered
+        %caxis([-max(abs(W_plot(:))) max(abs(W_plot(:)))]);  % ensures 0 is centered
+        caxis([-Wmax_common Wmax_common]);
         hold on
         writematrix(W_plot, fullfile(sprintf('W_response_c%02d_kz%g.csv', i, kz)));
         % fill solid patch
@@ -218,8 +246,10 @@ if show_velocity == "true"
         hold on
 
         hillp_tick_function;
-        saveas(fW1, fullfile(snapdir, sprintf('W_response_c%02d_kz%g.png', i, kz)));
-        %exportgraphics(gcf, fullfile(snapdir, sprintf('W_response_c%02d_kz%g.png', i, kz)), 'Resolution', 300);
+        daspect([1 1 1]);
+        %saveas(fW1, fullfile(sprintf('W_response_c%02d_kz%g.png', i, kz)));
+        exportgraphics(fW1, sprintf('W_response_c%02d_kz%g.png', i, kz), ...
+        'Resolution', 600, 'BackgroundColor', 'white');
         close(fW1);
 
         % %     % ---------- Z: contour Forcing mode ----------

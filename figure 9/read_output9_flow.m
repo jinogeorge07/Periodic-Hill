@@ -62,9 +62,34 @@ NXT       = 4;                          % number of major x ticks
 NYT       = 4;                          % number of major y ticks
 
 FIG_POS   = [100 100 1350 1000];        % figure size in pixels
-AX_POS = [0.18 0.26 0.55 0.62]; % axes position [left bottom width height]
-CB_POS    = [0.78 0.16 0.05 0.78];      % colorbar position
+AX_POS  = [0.12 0.28 0.78 0.58];
+CB_POS = [0.18 0.20 0.64 0.04];
 Lx        = 9.0;                        % for last x–tick
+
+kz_idx_list = [5,20,32]
+i_fixed = 1;
+
+Umax_common = 0;
+Vmax_common = 0;
+Wmax_common = 0;
+
+for kz_idx = kz_idx_list
+    fname = ['stability_results_Re100_120x96_kz' num2str(kz_idx) '.mat'];
+    load(fname);
+
+    tmp = U_hat(:,:,i_fixed);
+    tmp(solid_mask) = NaN;
+    Umax_common = max(Umax_common, max(abs(tmp(:)), [], 'omitnan'));
+
+    tmp = V_hat(:,:,i_fixed);
+    tmp(solid_mask) = NaN;
+    Vmax_common = max(Vmax_common, max(abs(tmp(:)), [], 'omitnan'));
+
+    tmp = W_hat(:,:,i_fixed);
+    tmp(solid_mask) = NaN;
+    Wmax_common = max(Wmax_common, max(abs(tmp(:)), [], 'omitnan'));
+end
+
 
 for kz_idx = [5,20,32]
 
@@ -90,7 +115,7 @@ for kz_idx = [5,20,32]
     Xs = Xg(1:qstep:end, 1:qstep:end);
     Ys = Yg(1:qstep:end, 1:qstep:end);
 
-    for i = [1]
+    for i = [8]
 
         crit_contour = Umean_coarse - c_list(i);   % Ny x Nx
 
@@ -104,7 +129,8 @@ for kz_idx = [5,20,32]
         shading interp
         colormap(bluewhitered);                     % ensures the center color is white
         %contour(x, y, crit_contour, [0 0], 'k', 'LineWidth', 2);   % critical layer
-        caxis([-max(abs(U_plot(:))) max(abs(U_plot(:)))]);  % ensures 0 is centered
+        %caxis([-max(abs(U_plot(:))) max(abs(U_plot(:)))]);  % ensures 0 is centered
+        caxis([-Umax_common Umax_common]);
         hold on
 
         writematrix(U_plot, fullfile(sprintf('U_response_c%02d_kz%g.csv', i, kz)));
@@ -114,8 +140,10 @@ for kz_idx = [5,20,32]
         hold on
 
         hillp_tick_function;
-
-        saveas(fU1, fullfile(sprintf('U_response_c%02d_kz%g.png', i, kz)));
+        daspect([1 1 1]);
+        %saveas(fU1, fullfile(sprintf('U_response_c%02d_kz%g.png', i, kz)));
+        exportgraphics(fU1, sprintf('U_response_c%02d_kz%g.png', i, kz), ...
+        'Resolution', 600, 'BackgroundColor', 'white');
         close(fU1);
 
         % %     % ---------- U: contour forcing mode ----------
@@ -139,7 +167,6 @@ for kz_idx = [5,20,32]
         %     saveas(fU3, fullfile(sprintf('X_forcing_c%02d_kz%g.png', i, kz)));
         %     close(fU3);
 
-
         % ---------- V: contour response mode----------
         fV1 = figure('Visible','on','Position',[100 100 1000 800]);
         %contourf(x, y, V_hat(:,:,i), 30, 'LineWidth', 1/2);
@@ -153,7 +180,8 @@ for kz_idx = [5,20,32]
         colormap(bluewhitered);                     % ensures the center color is white
         %hold on
         %contour(x, y, crit_contour, [0 0], 'k', 'LineWidth', 2);   % critical layer
-        caxis([-max(abs(V_plot(:))) max(abs(V_plot(:)))]);  % ensures 0 is centered
+        %caxis([-max(abs(V_plot(:))) max(abs(V_plot(:)))]);  % ensures 0 is centered
+        caxis([-Vmax_common Vmax_common]);
         hold on
 
         % fill solid patch
@@ -163,7 +191,10 @@ for kz_idx = [5,20,32]
 
         writematrix(V_plot, fullfile(sprintf('V_response_c%02d_kz%g.csv', i, kz)));
         hillp_tick_function;
-        saveas(fV1, fullfile(sprintf('V_response_c%02d_kz%g.png', i, kz)));
+        daspect([1 1 1]);
+        %saveas(fV1, fullfile(sprintf('V_response_c%02d_kz%g.png', i, kz)));
+        exportgraphics(fV1, sprintf('V_response_c%02d_kz%g.png', i, kz), ...
+        'Resolution', 600, 'BackgroundColor', 'white');
         close(fV1);
 
         % %     % ---------- V: contour forcing mode----------
@@ -189,27 +220,30 @@ for kz_idx = [5,20,32]
         %     close(fV3);
 
 
-        %     % ---------- W: contour Response mode ----------
-        %     fW1 = figure('Visible','off','Position',[100 100 1000 800]);
-        %     %contourf(x, y, W_hat(:,:,i), 30, 'LineWidth', 1/2);
-        %
-        %     %% Copy U and blank out the solid region
-        %     W_plot = W_hat(:,:,i);
-        %     W_plot(solid_mask) = NaN;      % hide solid, keep fluid only
-        %     contourf(x, y, W_plot, 40, 'LineWidth', 1/2);
-        %     shading interp
-        %     colormap(bluewhitered);                     % ensures the center color is white
-        %     caxis([-max(abs(W_plot(:))) max(abs(W_plot(:)))]);  % ensures 0 is centered
-        %     hold on
-        %
-        %     % fill solid patch
-        %     fill_patch_hillp;
-        %     plot(data_x, y1_vals, 'k', 'LineWidth', 2);   % thick black curve
-        %     hold on
-        %
-        %     hillp_tick_function;
-        %     saveas(fW1, fullfile(sprintf('W_response_c%02d_kz%g.png', i, kz)));
-        %     close(fW1);
+            % ---------- W: contour Response mode ----------
+            fW1 = figure('Visible','off','Position',[100 100 1000 800]);
+            %contourf(x, y, W_hat(:,:,i), 30, 'LineWidth', 1/2);
+        
+            %% Copy U and blank out the solid region
+            W_plot = W_hat(:,:,i);
+            W_plot(solid_mask) = NaN;      % hide solid, keep fluid only
+            contourf(x, y, W_plot, 40, 'LineWidth', 1/2);
+            shading interp
+            colormap(bluewhitered);                     % ensures the center color is white
+            caxis([-Wmax_common Wmax_common]);
+            hold on
+            
+            % fill solid patch
+            fill_patch_hillp;
+            plot(data_x, y1_vals, 'k', 'LineWidth', 2);   % thick black curve
+            hold on
+
+            writematrix(W_plot, fullfile(sprintf('W_response_c%02d_kz%g.csv', i, kz)));
+            hillp_tick_function;
+            daspect([1 1 1]);
+            exportgraphics(fW1, sprintf('W_response_c%02d_kz%g.png', i, kz), ...
+            'Resolution', 600, 'BackgroundColor', 'white');
+            close(fW1);
 
         % %     % ---------- Z: contour Forcing mode ----------
         %     fW3 = figure('Visible','off','Position',[100 100 1000 800]);

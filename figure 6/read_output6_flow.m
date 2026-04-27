@@ -86,12 +86,34 @@ BIG_TICKS = 40;                         % axis tick fontsize
 NXT       = 4;                          % number of major x ticks
 NYT       = 4;                          % number of major y ticks
 
-FIG_POS   = [100 100 1350 1000];        % figure size in pixels
-AX_POS = [0.18 0.26 0.55 0.62]; % axes position [left bottom width height]
-CB_POS    = [0.78 0.16 0.05 0.78];      % colorbar position
+FIG_POS = [100 100 1350 1000];
+AX_POS  = [0.12 0.28 0.78 0.58];
+CB_POS = [0.18 0.20 0.64 0.04];
 Lx        = 9.0;                        % for last x–tick
 
 if show_velocity == "true"
+
+    idx_list = [7,9,12];
+
+    Umax_common = 0;
+    for ii = idx_list
+        tmp = U2_hat(:,:,ii);
+        tmp(solid_mask) = NaN;
+        Umax_common = max(Umax_common, max(abs(tmp(:)), [], 'omitnan'));
+    end
+    Vmax_common = 0;
+    for ii = idx_list
+        tmp = V2_hat(:,:,ii);
+        tmp(solid_mask) = NaN;
+        Vmax_common = max(Vmax_common, max(abs(tmp(:)), [], 'omitnan'));
+    end
+
+    Wmax_common = 0;
+    for ii = idx_list
+        tmp = W2_hat(:,:,ii);
+        tmp(solid_mask) = NaN;
+        Wmax_common = max(Wmax_common, max(abs(tmp(:)), [], 'omitnan'));
+    end
 
     for i = [7,9,12]
 
@@ -131,9 +153,11 @@ if show_velocity == "true"
         U2_plot = U2_hat(:,:,i);
         U2_plot(solid_mask) = NaN;      % hide solid, keep fluid only
         contourf(x, y, U2_plot, 40, 'LineWidth', 0.5);
+       
         shading interp
         colormap(bluewhitered);                     % ensures the center color is white
-        caxis([-max(abs(U2_plot(:))) max(abs(U2_plot(:)))]);  % ensures 0 is centered
+        %caxis([-max(abs(U2_plot(:))) max(abs(U2_plot(:)))]);  % ensures 0 is centered
+        caxis([-Umax_common Umax_common]);
         hold on
 
         writematrix(U2_plot, fullfile(sprintf('X_forcing_c%02d_kz%g.csv', i, kz)));
@@ -142,12 +166,10 @@ if show_velocity == "true"
         plot(data_x, y1_vals, 'k', 'LineWidth', 2);   % thick black curve
         hold on
 
-
         hillp_tick_function;
-        saveas(fU3, fullfile(sprintf('X_forcing_c%02d_kz%g.png', i, kz)));
-
-        %     exportgraphics(gcf, fullfile(snapdir, sprintf('X_forcing_c%02d_kz%g.png', i, kz)), 'Resolution', 300);
-        %     close(fU3);
+        daspect([1 1 1]);
+        exportgraphics(gcf, fullfile(sprintf('X_forcing_c%02d_kz%g.png', i, kz)), 'Resolution', 600, 'BackgroundColor', 'white');
+        close(fU3);
 
         %     % ---------- V: contour response mode----------
         %     fV1 = figure('Visible','off','Position',[100 100 1000 800]);
@@ -186,19 +208,18 @@ if show_velocity == "true"
         contourf(x, y, V2_plot, 40, 'LineWidth', 0.5);
         shading interp
         colormap(bluewhitered);                     % ensures the center color is white
-        caxis([-max(abs(V2_plot(:))) max(abs(V2_plot(:)))]);  % ensures 0 is centered
+        %caxis([-max(abs(V2_plot(:))) max(abs(V2_plot(:)))]);  % ensures 0 is centered
+        caxis([-Vmax_common Vmax_common]);
         hold on
 
         writematrix(V2_plot, fullfile(sprintf('Y_forcing_c%02d_kz%g.csv', i, kz)));
-        % fill solid patch
-        fill_patch_hillp;
-        plot(data_x, y1_vals, 'k', 'LineWidth', 2);   % thick black curve
+        %%fill_patch_hillp;
+        %%plot(data_x, y1_vals, 'k', 'LineWidth', 2);   % thick black curve
         hold on
 
         hillp_tick_function;
-        saveas(fV3, fullfile(sprintf('Y_forcing_c%02d_kz%g.png', i, kz)));
-
-        %exportgraphics(gcf, fullfile(snapdir, sprintf('Y_forcing_c%02d_kz%g.png', i, kz)), 'Resolution', 300);
+        daspect([1 1 1]);
+        exportgraphics(gcf, fullfile(sprintf('Y_forcing_c%02d_kz%g.png', i, kz)), 'Resolution', 600, 'BackgroundColor', 'white');
         close(fV3);
 
 
@@ -234,7 +255,8 @@ if show_velocity == "true"
         contourf(x, y, W2_plot, 40, 'LineWidth', 1/2);
         shading interp
         colormap(bluewhitered);                     % ensures the center color is white
-        caxis([-max(abs(W2_plot(:))) max(abs(W2_plot(:)))]);  % ensures 0 is centered
+        %caxis([-max(abs(W2_plot(:))) max(abs(W2_plot(:)))]);  % ensures 0 is centered
+        caxis([-Wmax_common Wmax_common]);
         hold on
 
         writematrix(W2_plot, fullfile(sprintf('Z_forcing_c%02d_kz%g.csv', i, kz)));
@@ -244,8 +266,8 @@ if show_velocity == "true"
         hold on
 
         hillp_tick_function;
-        saveas(fW3, fullfile(sprintf('Z_forcing_c%02d_kz%g.png', i, kz)));
-        %exportgraphics(gcf, fullfile(snapdir, sprintf('Z_forcing_c%02d_kz%g.png', i, kz)), 'Resolution', 300);
+        daspect([1 1 1]);
+        exportgraphics(gcf, fullfile(sprintf('Z_forcing_c%02d_kz%g.png', i, kz)), 'Resolution', 300, 'BackgroundColor', 'white');
         close(fW3);
 
     end

@@ -97,7 +97,7 @@ ax.YTick = newY;
 % apply the +1.5 shift to labels
 ax.YTickLabel = arrayfun(@(y) sprintf('%d', y + 1.5), newY, 'UniformOutput', false);
 % ===========================================================
-
+daspect([1 1 1]);
 saveas(fig_uMean,'u_mean_zt_contour.png');
 
 
@@ -181,7 +181,7 @@ ax.YTick = newY;
 % apply the +1.5 shift to labels
 ax.YTickLabel = arrayfun(@(y) sprintf('%d', y + 1.5), newY, 'UniformOutput', false);
 % ===========================================================
-
+daspect([1 1 1]);
 saveas(fig_vMean,'v_mean_zt_contour.png');
 
 writematrix(u_mean_zt,'u_mean_zt.csv');
