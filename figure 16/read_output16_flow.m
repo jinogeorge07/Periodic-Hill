@@ -1,115 +1,95 @@
-% Read Nek5000 output data
-clc; clear all;close all;
+% Amplification factor and growth
+clc; clear all; close all;
 
 folderpath = './'
 
-u_mean = readmatrix("u_mean_nek.csv");
-v_mean = readmatrix("v_mean_nek.csv");
-x_mean = readmatrix("x_mean_nek.csv")
-y_mean = readmatrix("y_mean_nek.csv")
-nlevels = 40;
+Re = [50,100,190];
 
-rwb1 = bluewhitered;
+c_number = 12;
+compute_deviation = "false"
+%% Wavenumbers/frequency
+kxn = 1; kzn = 36; kx = 1;
+omega = 1;
+kx_list = logspace(-4,0.48,kxn);
+kz_list = logspace(-2,1.2,kzn);
+c_list  = linspace(-1,1,c_number);
+omega = -c_list * kx;
 
-%% U mean nek
+for i = 1:length(Re)
 
-fig = figure;
-set(fig, 'Position', [100, 100, 1000, 800]);
-contourf(x_mean, y_mean, u_mean, nlevels);
-shading interp
-colormap(rwb1);
+    filename = ['sigma_list_Re' num2str(Re(i)) '_kz5.mat'];
+    data5 = load(filename);
+    filename = ['sigma_list_Re' num2str(Re(i)) '_kz10.mat'];
+    data10 = load(filename);
+    filename = ['sigma_list_Re' num2str(Re(i)) '_kz20.mat'];
+    data20 = load(filename);
+    filename = ['sigma_list_Re' num2str(Re(i)) '_kz28.mat'];
+    data28 = load(filename);
+    filename = ['sigma_list_Re' num2str(Re(i)) '_kz32.mat'];
+    data32 = load(filename);
 
-% -------- Colorbar setup (unchanged, but cleaned) ----------
-c = colorbar;
-%c.Limits = [min(u_2D_mean(:)) max(u_2D_mean(:))];
-c.Limits = [-0.24 1.98];
-numTicks = 6;
-minVal = c.Limits(1);
-maxVal = c.Limits(2);
-ticks   = linspace(minVal, maxVal, numTicks);
+    writematrix(data5.sigma_list,['sigma_list_Re' num2str(Re(i)) '_kz5.csv'])
+    writematrix(data10.sigma_list,['sigma_list_Re' num2str(Re(i)) '_kz10.csv'])
+    writematrix(data20.sigma_list,['sigma_list_Re' num2str(Re(i)) '_kz20.csv'])
+    writematrix(data28.sigma_list,['sigma_list_Re' num2str(Re(i)) '_kz28.csv'])
+    writematrix(data32.sigma_list,['sigma_list_Re' num2str(Re(i)) '_kz32.csv'])
 
-c.Ticks      = ticks;
-c.TickLabels = arrayfun(@(x) sprintf('%.2f', x), ticks, 'UniformOutput', false);
-c.FontSize   = 32;
+    sigma_list_5 = data5.sigma_list;
+    sigma_list_10 = data10.sigma_list;
+    sigma_list_20 = data20.sigma_list;
+    sigma_list_28 = data28.sigma_list;
+    sigma_list_32 = data32.sigma_list;
 
-fprintf('U Velocity Nek min: %.3f\n', minVal);
-fprintf('U Velocity Nek max: %.3f\n', maxVal);
+    sigma2_list_5  = sigma_list_5.^2;
+    sigma2_list_10 = sigma_list_10.^2;
+    sigma2_list_20 = sigma_list_20.^2;
+    sigma2_list_28 = sigma_list_28.^2;
+    sigma2_list_32 = sigma_list_32.^2;
 
-set(gca, 'FontSize', 32);
-xlabel('x', 'FontSize', 40);
-ylabel('y', 'FontSize', 40);
+    % Amplification gain------------------------------------------------------
 
-% ================= AXIS TICKS FROM 0 ON BOTH AXES =================
-ax = gca;
+    % Set axis tick label font size
+    set(gca, 'FontSize', 20);
+    lgd = legend;
+    set(lgd, 'Color', 'none');   % remove background
+    set(lgd, 'Box', 'off');      % optional: remove border
+    xlim([-1 1])
+    ylim([0 200])
 
-% ---- X-axis: from 0 to max, like snapshots code ----
-xmin = min(x_mean(:));
-xmax = max(x_mean(:));
+    figure;
+    plot(omega, sigma_list_5, 'o-', 'LineWidth', 2, 'MarkerSize', 6); hold on;
+    plot(omega, sigma_list_10, 's--', 'LineWidth', 2, 'MarkerSize', 6);
+    plot(omega, sigma_list_20, 'd-.', 'LineWidth', 2, 'MarkerSize', 6);
+    plot(omega, sigma_list_28, 'd-.', 'LineWidth', 2, 'MarkerSize', 6);
+    plot(omega, sigma_list_32, 'p-.', 'LineWidth', 2, 'MarkerSize', 6);
 
-% if your domain is [0,9], enforce that explicitly:
-ax.XLim      = [0 9];       % or [xmin xmax] if you prefer data-based
-ax.XTickMode = 'manual';
-ax.XTick     = 0:3:9;       % ticks at 0,3,6,9
-ax.XTickLabel = arrayfun(@(x) sprintf('%d', x), ax.XTick, 'UniformOutput', false);
+    grid off;
+    %title('Resolvent Singular Values vs Frequency \omega', 'FontSize', 22);
+    xlabel('Temporal frequency \omega', 'FontSize', 20);
+    ylabel('Singular value \sigma', 'FontSize', 20);
 
-% ---- Y-axis: from 0 to 3, independent from x-axis ----
-ymin = min(y_mean(:));
-ymax = max(y_mean(:));
+    legend({ ...
+        sprintf('kz = %.2f', kz_list(5)), ...
+        sprintf('kz = %.2f', kz_list(10)), ...
+        sprintf('kz = %.2f', kz_list(20)), ...
+        sprintf('kz = %.2f', kz_list(28)), ...
+        sprintf('kz = %.2f', kz_list(32))}, ...
+        'FontSize', 18, ...
+        'Orientation','horizontal', ...
+        'NumColumns', 2, ...   % <-- first row: 3 items
+        'Location','northwest');  % <-- inside, top-left
 
-% if your physical wall-normal extent is [0,3], enforce:
-ax.YLim      = [0 3];       % or [ymin ymax] if you'd rather auto
-ax.YTickMode = 'manual';
-ax.YTick     = 0:1:3;       % ticks at 0,1,2,3
-ax.YTickLabel = arrayfun(@(y) sprintf('%d', y), ax.YTick, 'UniformOutput', false);
-% =====================================================
-daspect([1 1 1]);
-saveas(gcf, 'U_nek_Re190.png');
 
-%% V nek ------------------------------------------------------------------
-fig = figure;
-set(fig, 'Position', [100, 100, 1000, 800]);
+    % Set axis tick label font size
+    set(gca, 'FontSize', 20);
+    lgd = legend;
+    set(lgd, 'Color', 'none');   % remove background
+    set(lgd, 'Box', 'off');      % optional: remove border
+    xlim([-1 1])
+    ylim([0 200])
 
-contourf(x_mean, y_mean, v_mean, nlevels);
-shading interp
-colormap(rwb1);
+    %saveas(gcf, 'resolvent_spectrum_vs_omega.png');
+    filename = ['resolvent_spectrum_vs_omega_' num2str(Re(i)) '.png'];
+    saveas(gcf, filename);
 
-% ---------------- COLORBAR ----------------
-c = colorbar;
-%c.Limits = [min(v_2D_mean(:)) max(v_2D_mean(:))];
-c.Limits = [-0.19 0.22];
-numTicks = 6;
-
-minVal = c.Limits(1);
-maxVal = c.Limits(2);
-ticks  = linspace(minVal, maxVal, numTicks);
-
-c.Ticks      = ticks;
-c.TickLabels = arrayfun(@(x) sprintf('%.2f', x), ticks, 'UniformOutput', false);
-c.FontSize   = 32;
-
-fprintf('V Velocity Colorbar Min: %.3f\n', minVal);
-fprintf('V Velocity Colorbar Max: %.3f\n', maxVal);
-
-% ---------------- AXES ----------------
-ax = gca;
-set(ax, 'FontSize', 32);
-
-xlabel('x', 'FontSize', 40);
-ylabel('y', 'FontSize', 40);
-
-% ================= AXIS TICKS FROM 0 ON BOTH AXES =================
-% ---- X-axis ----
-ax.XLim      = [0 9];
-ax.XTickMode = 'manual';
-ax.XTick     = 0:3:9;
-ax.XTickLabel = arrayfun(@(x) sprintf('%d', x), ax.XTick, 'UniformOutput', false);
-
-% ---- Y-axis ----
-ax.YLim      = [0 3];
-ax.YTickMode = 'manual';
-ax.YTick     = 0:1:3;
-ax.YTickLabel = arrayfun(@(y) sprintf('%d', y), ax.YTick, 'UniformOutput', false);
-% =================================================================
-daspect([1 1 1]);
-saveas(gcf, 'V_nek_Re190.png');
-%% ------------------------------------------------------------------------
+end
