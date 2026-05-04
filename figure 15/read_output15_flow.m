@@ -147,7 +147,7 @@ for kz_idx = kz_idx_list
         caxis([-Umax_common Umax_common]);
         hold on
 
-        %writematrix(U_plot, fullfile(sprintf('U_response_c%02d_kz%g.csv', i, kz)));
+        writematrix(U_plot, fullfile(sprintf('U_response_Re%d_c%02d_kz%g.csv',Re, i, kz)));
         % fill solid patch
         fill_patch_hillp;
         plot(data_x, y1_vals, 'k', 'LineWidth', 2);   % thick black curve
@@ -381,7 +381,7 @@ for kz_idx = kz_idx_list
         caxis([-Umax_common Umax_common]);
         hold on
 
-        %writematrix(U_plot, fullfile(sprintf('U_response_c%02d_kz%g.csv', i, kz)));
+        writematrix(U_plot, fullfile(sprintf('U_response_Re%d_c%02d_kz%g.csv',Re, i, kz)));
         % fill solid patch
         fill_patch_hillp;
         plot(data_x, y1_vals, 'k', 'LineWidth', 2);   % thick black curve

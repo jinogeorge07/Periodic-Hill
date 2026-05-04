@@ -174,7 +174,8 @@ for kz_idx = kz_idx_list
         %caxis([-max(abs(U2_plot(:))) max(abs(U2_plot(:)))]);  % ensures 0 is centered
         caxis([-U2max_common U2max_common]);
         hold on
-
+        
+        writematrix(U2_plot, fullfile(sprintf('X_forcing_Re%d_c%02d_kz%g.csv',Re, i, kz)));
         % fill solid patch
         fill_patch_hillp;
         plot(data_x, y1_vals, 'k', 'LineWidth', 2);   % thick black curve
@@ -423,7 +424,8 @@ for kz_idx = kz_idx_list
         %caxis([-max(abs(U2_plot(:))) max(abs(U2_plot(:)))]);  % ensures 0 is centered
         caxis([-U2max_common U2max_common]);
         hold on
-
+        
+        writematrix(U2_plot, fullfile(sprintf('X_forcing_Re%d_c%02d_kz%g.csv',Re, i, kz)));
         % fill solid patch
         fill_patch_hillp;
         plot(data_x, y1_vals, 'k', 'LineWidth', 2);   % thick black curve

@@ -115,7 +115,7 @@ for kz_idx = [5,20,32]
     Xs = Xg(1:qstep:end, 1:qstep:end);
     Ys = Yg(1:qstep:end, 1:qstep:end);
 
-    for i = [8]
+    for i = [1]
 
         crit_contour = Umean_coarse - c_list(i);   % Ny x Nx
 
