@@ -213,7 +213,7 @@ if show_velocity == "true"
         hold on
 
         writematrix(V2_plot, fullfile(sprintf('Y_forcing_c%02d_kz%g.csv', i, kz)));
-        %%fill_patch_hillp;
+        fill_patch_hillp;
         %%plot(data_x, y1_vals, 'k', 'LineWidth', 2);   % thick black curve
         hold on
 

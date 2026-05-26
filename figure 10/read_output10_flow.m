@@ -119,7 +119,7 @@ for kz_idx = [5,20,32]
         crit_contour = Umean_coarse - c_list(i);   % Ny x Nx
 
         % ---------- U: contour Response mode ----------
-        fU1 = figure('Visible','on','Position',[100 100 1000 800]);
+        fU1 = figure('Visible','off','Position',[100 100 1000 800]);
         % Copy U and blank out the solid region
         U_plot = U_hat(:,:,i);
         U_plot(solid_mask) = NaN;      % hide solid, keep fluid only
@@ -167,7 +167,7 @@ for kz_idx = [5,20,32]
 
 
         % ---------- V: contour response mode----------
-        fV1 = figure('Visible','on','Position',[100 100 1000 800]);
+        fV1 = figure('Visible','off','Position',[100 100 1000 800]);
         %contourf(x, y, V_hat(:,:,i), 30, 'LineWidth', 1/2);
 
         %% Copy U and blank out the solid region
